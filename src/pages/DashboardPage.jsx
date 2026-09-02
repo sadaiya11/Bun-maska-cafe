@@ -45,7 +45,7 @@ export default function DashboardPage() {
               title={item.title}
               price={`$${Number(item.variants?.[0]?.price ?? 0).toFixed(2)}`}
               tag={item.tag}
-              image={item.image}
+              image={item.variants?.[0]?.image ?? ''}
               description={item.description}
             />
           ))}
