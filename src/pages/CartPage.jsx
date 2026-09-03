@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useCart } from '../context/useCart'
 
-const formatPrice = (price) => `$${price.toFixed(2)}`
+const formatPrice = (price) => `₹${price.toFixed(2)}`
 
 export default function CartPage() {
   const { items, subtotal, delivery, tax, total, itemCount, updateQuantity, removeItem } = useCart()

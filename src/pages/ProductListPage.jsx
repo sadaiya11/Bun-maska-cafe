@@ -2,7 +2,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import SectionHeader from '../components/SectionHeader'
 import products from '../data/products.json'
 
-const formatPrice = (price) => `$${Number(price).toFixed(2)}`
+const formatPrice = (price) => `₹${Number(price).toFixed(2)}`
 
 export default function ProductListPage() {
   const [searchParams] = useSearchParams()

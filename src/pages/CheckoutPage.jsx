@@ -4,7 +4,7 @@ import PaymentResult from '../components/PaymentResult'
 import DemoPaymentModal from '../components/DemoPaymentModal'
 import { useCart } from '../context/useCart'
 
-const formatPrice = (price) => `$${price.toFixed(2)}`
+const formatPrice = (price) => `₹${price.toFixed(2)}`
 const paymentMethods = [
   { id: 'razorpay', title: 'Pay online with Razorpay', detail: 'Cards, UPI, net banking and wallets' },
   { id: 'cod', title: 'Cash on delivery', detail: 'Pay when your order arrives' },

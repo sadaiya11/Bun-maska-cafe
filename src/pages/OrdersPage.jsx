@@ -4,9 +4,9 @@ export default function OrdersPage() {
       <h1 className="text-3xl font-bold text-white">Orders</h1>
       <div className="mt-6 space-y-4">
         {[
-          { id: '#1048', customer: 'Alicia', total: '$42.00', status: 'Preparing' },
-          { id: '#1049', customer: 'Marcus', total: '$18.50', status: 'Ready' },
-          { id: '#1050', customer: 'Sonia', total: '$26.75', status: 'Delivered' },
+          { id: '#1048', customer: 'Alicia', total: '₹420.00', status: 'Preparing' },
+          { id: '#1049', customer: 'Marcus', total: '₹185.00', status: 'Ready' },
+          { id: '#1050', customer: 'Sonia', total: '₹267.50', status: 'Delivered' },
         ].map((order) => (
           <div key={order.id} className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-800/60 px-4 py-3">
             <div>

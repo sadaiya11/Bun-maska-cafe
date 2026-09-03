@@ -43,7 +43,7 @@ export default function DashboardPage() {
               key={item.slug}
               slug={item.slug}
               title={item.title}
-              price={`$${Number(item.variants?.[0]?.price ?? 0).toFixed(2)}`}
+              price={`₹${Number(item.variants?.[0]?.price ?? 0).toFixed(2)}`}
               tag={item.tag}
               image={item.variants?.[0]?.image ?? ''}
               description={item.description}

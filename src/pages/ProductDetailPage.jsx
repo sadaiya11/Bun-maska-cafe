@@ -5,7 +5,7 @@ import QuantitySelector from '../components/QuantitySelector'
 import products from '../data/products.json'
 import { useCart } from '../context/useCart'
 
-const formatPrice = (price) => `$${Number(price).toFixed(2)}`
+const formatPrice = (price) => `₹${Number(price).toFixed(2)}`
 
 export default function ProductDetailPage() {
   const { slug } = useParams()
