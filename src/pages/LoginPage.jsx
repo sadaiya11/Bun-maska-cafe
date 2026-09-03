@@ -1,40 +1,64 @@
-export default function LoginPage({ onLogin }) {
+import { useState } from 'react'
+import { useDispatch } from 'react-redux'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { login } from '../store/authSlice'
+
+export default function LoginPage() {
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const from = location.state?.from?.pathname || '/profile'
+
+  const [email, setEmail] = useState('user@bunmaska.com')
+  const [password, setPassword] = useState('123456')
+
+  function handleSubmit(event) {
+    event.preventDefault()
+    dispatch(login({ name: 'Maya Reynolds', email }))
+    navigate(from, { replace: true })
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-950 px-6">
-      <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900/80 p-8 shadow-2xl shadow-sky-950/30 backdrop-blur-sm">
+    <div className="flex min-h-[65vh] items-center justify-center">
+      <div className="w-full max-w-md rounded-[2rem] bg-white p-8 shadow-xl shadow-slate-200 border border-slate-100">
         <div className="mb-8 text-center">
-          <span className="inline-flex rounded-full border border-sky-500/30 bg-sky-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-sky-300">
+          <span className="inline-flex rounded-full bg-orange-100 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.2em] text-orange-600">
             Bun Maska Cafe
           </span>
-          <h1 className="mt-5 text-3xl font-bold text-white">Welcome back</h1>
-          <p className="mt-2 text-sm text-slate-300">Sign in to manage your cafe dashboard.</p>
+          <h1 className="mt-4 text-3xl font-black text-slate-900">Welcome Back</h1>
+          <p className="mt-2 text-sm text-slate-600">Sign in to view your orders and profile.</p>
         </div>
 
-        <form className="space-y-5">
+        <form className="space-y-5" onSubmit={handleSubmit}>
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-200">Email</label>
+            <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-700">Email Address</label>
             <input
               type="email"
-              defaultValue="admin@bunmaska.com"
-              className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-500/30"
+              required
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-orange-400 focus:bg-white"
+              placeholder="you@example.com"
             />
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-200">Password</label>
+            <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-700">Password</label>
             <input
               type="password"
-              defaultValue="123456"
-              className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-500/30"
+              required
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-orange-400 focus:bg-white"
+              placeholder="••••••••"
             />
           </div>
 
           <button
-            type="button"
-            onClick={onLogin}
-            className="w-full rounded-xl bg-sky-500 px-4 py-3 font-semibold text-slate-950 transition hover:bg-sky-400"
+            type="submit"
+            className="w-full rounded-full bg-orange-500 px-6 py-4 font-bold text-white transition hover:bg-orange-600 shadow-lg shadow-orange-200"
           >
-            Login
+            Sign In
           </button>
         </form>
       </div>

@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import TopNavigation from './TopNavigation'
+import ProtectedRoute from './ProtectedRoute'
 import LoginPage from '../pages/LoginPage'
 import InfoPage from '../pages/InfoPage'
 import DashboardPage from '../pages/DashboardPage'
@@ -7,25 +8,16 @@ import ProductDetailPage from '../pages/ProductDetailPage'
 import ProductListPage from '../pages/ProductListPage'
 import CartPage from '../pages/CartPage'
 import CheckoutPage from '../pages/CheckoutPage'
+import OrdersPage from '../pages/OrdersPage'
+import ProfilePage from '../pages/ProfilePage'
 import { useCart } from '../context/useCart'
 
-const publicNav = [
-  { label: 'Home', path: '/dashboard' },
-  { label: 'Product', path: '/product' },
-  { label: 'Cart', path: '/cart' },
-  { label: 'Checkout', path: '/checkout' },
-  { label: 'Offers', path: '/offers' },
-  { label: 'About', path: '/about' },
-  { label: 'Contact', path: '/contact' },
-  { label: 'Login', path: '/login' },
-]
-
-export default function PublicLayout({ onLogin }) {
+export default function PublicLayout() {
   const { itemCount } = useCart()
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800">
-      <TopNavigation items={publicNav} brand="Bun Maska Café" cartCount={itemCount} />
+      <TopNavigation brand="Bun Maska Café" cartCount={itemCount} />
 
       <main className="mx-auto max-w-7xl px-4 py-8 md:px-8">
         <Routes>
@@ -35,7 +27,7 @@ export default function PublicLayout({ onLogin }) {
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/offers" element={<InfoPage title="Special Offers" description="Enjoy the best combo deals, family packs, and chef specials prepared fresh for you." />} />
-          <Route path="/login" element={<LoginPage onLogin={onLogin} />} />
+          <Route path="/login" element={<LoginPage />} />
           <Route
             path="/about"
             element={
@@ -54,6 +46,25 @@ export default function PublicLayout({ onLogin }) {
               />
             }
           />
+
+          {/* Protected Routes: Accessible only when logged in */}
+          <Route
+            path="/orders"
+            element={
+              <ProtectedRoute>
+                <OrdersPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
