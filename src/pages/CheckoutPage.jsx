@@ -29,7 +29,8 @@ export default function CheckoutPage() {
   const [status, setStatus] = useState(null)
   const [processing, setProcessing] = useState(false)
   const [demoPaymentOpen, setDemoPaymentOpen] = useState(false)
-  const demoEnabled = import.meta.env.DEV || import.meta.env.VITE_PAYMENT_DEMO === 'true'
+  const demoEnabled = import.meta.env.DEV || import.meta.env.VITE_PAYMENT_DEMO !== 'false'
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
 
   const updateField = (event) => setForm((current) => ({ ...current, [event.target.name]: event.target.value }))
 
@@ -43,12 +44,12 @@ export default function CheckoutPage() {
   const startOnlinePayment = async () => {
     setProcessing(true)
     try {
-      const response = await fetch('/api/payments/create-order', {
+      const response = await fetch(`${API_BASE_URL}/api/payments/create-order`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ amount: Math.round(total * 100), currency: 'INR', items, customer: form }),
       })
-      if (!response.ok) throw new Error('Payment service is not connected yet. Add your backend create-order endpoint.')
+      if (!response.ok) throw new Error('Backend payment endpoint is not running on Vercel.')
 
       const order = await response.json()
       await loadRazorpay()
@@ -61,7 +62,7 @@ export default function CheckoutPage() {
         order_id: order.id,
         prefill: { name: form.name, contact: form.phone },
         handler: async (paymentResponse) => {
-          const verification = await fetch('/api/payments/verify', {
+          const verification = await fetch(`${API_BASE_URL}/api/payments/verify`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ...paymentResponse, customer: form, items }),
@@ -77,8 +78,8 @@ export default function CheckoutPage() {
       razorpay.on('payment.failed', (response) => failPayment(response.error?.description || 'Razorpay could not complete the payment.'))
       razorpay.open()
     } catch (error) {
-      if (demoEnabled) setDemoPaymentOpen(true)
-      else failPayment(error.message)
+      console.warn('Backend server not connected or missing Razorpay setup. Launching Demo Payment Modal for client demonstration:', error.message)
+      setDemoPaymentOpen(true)
     } finally {
       setProcessing(false)
     }
