@@ -1,11 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 export default function ProductGallery({ images = [] }) {
-  const [activeImage, setActiveImage] = useState(images[0] ?? '')
-
-  useEffect(() => {
-    setActiveImage(images[0] ?? '')
-  }, [images])
+  const [selectedImage, setSelectedImage] = useState(null)
+  const activeImage = selectedImage && images.includes(selectedImage) ? selectedImage : (images[0] ?? '')
 
   if (!images.length) {
     return null
@@ -22,7 +19,7 @@ export default function ProductGallery({ images = [] }) {
           <button
             key={image}
             type="button"
-            onClick={() => setActiveImage(image)}
+            onClick={() => setSelectedImage(image)}
             className={`overflow-hidden rounded-2xl border-2 transition ${
               activeImage === image ? 'border-orange-500' : 'border-slate-200'
             }`}

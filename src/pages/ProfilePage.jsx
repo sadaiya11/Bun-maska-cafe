@@ -2,6 +2,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { logout } from '../store/authSlice'
 import { useNavigate } from 'react-router-dom'
 import SectionHeader from '../components/SectionHeader'
+import SEO from '../components/SEO'
 
 export default function ProfilePage() {
   const dispatch = useDispatch()
@@ -15,6 +16,7 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-8">
+      <SEO title="My Profile | Bun Maska Café" noindex={true} />
       <section className="rounded-[2rem] bg-white p-6 shadow-sm shadow-slate-200 md:p-8">
         <SectionHeader
           eyebrow="My Account"

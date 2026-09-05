@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import SectionHeader from '../components/SectionHeader'
+import SEO from '../components/SEO'
 
 export default function OrdersPage() {
   const orders = [
@@ -10,6 +11,7 @@ export default function OrdersPage() {
 
   return (
     <div className="space-y-8">
+      <SEO title="My Orders | Bun Maska Café" noindex={true} />
       <section className="rounded-[2rem] bg-white p-6 shadow-sm shadow-slate-200 md:p-8">
         <SectionHeader
           eyebrow="My Account"

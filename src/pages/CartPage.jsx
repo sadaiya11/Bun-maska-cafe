@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useCart } from '../context/useCart'
+import SEO from '../components/SEO'
 
 const formatPrice = (price) => `₹${price.toFixed(2)}`
 
@@ -8,6 +9,7 @@ export default function CartPage() {
 
   return (
     <div className="grid gap-8 pb-10 xl:grid-cols-[1.5fr_0.8fr]">
+      <SEO title="Shopping Cart | Bun Maska Café" noindex={true} />
       <section className="rounded-[2rem] bg-white p-6 shadow-sm shadow-slate-200 md:p-8">
         <div className="flex items-center justify-between gap-4 border-b border-slate-200 pb-5">
           <h1 className="text-3xl font-black text-slate-900">Your cart</h1>

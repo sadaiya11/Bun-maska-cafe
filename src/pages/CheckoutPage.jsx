@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import PaymentResult from '../components/PaymentResult'
 import DemoPaymentModal from '../components/DemoPaymentModal'
+import SEO from '../components/SEO'
 import { useCart } from '../context/useCart'
 
 const formatPrice = (price) => `₹${price.toFixed(2)}`
@@ -29,7 +30,6 @@ export default function CheckoutPage() {
   const [status, setStatus] = useState(null)
   const [processing, setProcessing] = useState(false)
   const [demoPaymentOpen, setDemoPaymentOpen] = useState(false)
-  const demoEnabled = import.meta.env.DEV || import.meta.env.VITE_PAYMENT_DEMO !== 'false'
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
 
   const updateField = (event) => setForm((current) => ({ ...current, [event.target.name]: event.target.value }))
@@ -99,6 +99,7 @@ export default function CheckoutPage() {
 
   return (
     <>
+      <SEO title="Checkout | Bun Maska Café" noindex={true} />
       <form onSubmit={handleSubmit} className="grid gap-8 pb-10 xl:grid-cols-[1.3fr_0.7fr]">
       <section className="rounded-[2rem] bg-white p-6 shadow-sm shadow-slate-200 md:p-8">
         <p className="text-xs font-bold uppercase tracking-[0.3em] text-orange-500">Secure checkout</p>

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import ProductGallery from '../components/ProductGallery'
 import QuantitySelector from '../components/QuantitySelector'
+import SEO from '../components/SEO'
 import products from '../data/products.json'
 import { useCart } from '../context/useCart'
 
@@ -25,15 +26,75 @@ export default function ProductDetailPage() {
   const relatedProducts = products.filter((item) => item.slug !== product?.slug).slice(0, 3)
 
   if (!product) {
-    return <div className="rounded-[2rem] bg-white p-10 text-center"><h1 className="text-3xl font-black">Product not found</h1><Link to="/product" className="mt-5 inline-block rounded-full bg-orange-500 px-6 py-3 font-bold text-white">Back to products</Link></div>
+    return (
+      <div className="rounded-[2rem] bg-white p-10 text-center">
+        <SEO title="Product Not Found | Bun Maska Café" noindex={true} />
+        <h1 className="text-3xl font-black">Product not found</h1>
+        <Link to="/product" className="mt-5 inline-block rounded-full bg-orange-500 px-6 py-3 font-bold text-white">Back to products</Link>
+      </div>
+    )
   }
+
+  const productJsonLd = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      name: product.title,
+      image: selectedVariant.gallery ?? [selectedVariant.image],
+      description: product.description,
+      category: product.category,
+      offers: {
+        '@type': 'Offer',
+        priceCurrency: 'INR',
+        price: selectedVariant.price,
+        availability: 'https://schema.org/InStock',
+        url: `https://bunmaskacafe.com/product/${product.slug}`,
+        seller: {
+          '@type': 'Organization',
+          name: 'Bun Maska Café',
+        },
+      },
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'Home',
+          item: 'https://bunmaskacafe.com/',
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: 'Menu',
+          item: 'https://bunmaskacafe.com/product',
+        },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: product.title,
+          item: `https://bunmaskacafe.com/product/${product.slug}`,
+        },
+      ],
+    },
+  ]
 
   return (
     <div className="space-y-10 pb-10 text-slate-800">
+      <SEO
+        title={`${product.title} | Bun Maska Café Menu`}
+        description={`${product.description} Order ${product.title} fresh online from Bun Maska Café.`}
+        keywords={`${product.title}, ${product.category}, buy ${product.title}, bun maska cafe menu`}
+        ogImage={selectedVariant.image}
+        canonical={`https://bunmaskacafe.com/product/${product.slug}`}
+        jsonLd={productJsonLd}
+      />
       <nav className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
-        <span>Home</span>
+        <Link to="/" className="hover:text-orange-600">Home</Link>
         <span>›</span>
-        <span>Menu</span>
+        <Link to="/product" className="hover:text-orange-600">Menu</Link>
         <span>›</span>
         <span className="font-semibold text-slate-800">{product.title}</span>
       </nav>

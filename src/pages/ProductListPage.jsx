@@ -1,5 +1,6 @@
 import { Link, useSearchParams } from 'react-router-dom'
 import SectionHeader from '../components/SectionHeader'
+import SEO from '../components/SEO'
 import products from '../data/products.json'
 
 const formatPrice = (price) => `₹${Number(price).toFixed(2)}`
@@ -9,8 +10,34 @@ export default function ProductListPage() {
   const category = searchParams.get('category')
   const visibleProducts = category ? products.filter((product) => product.category === category) : products
 
+  const pageTitle = category ? `${category} Menu | Bun Maska Café` : 'Café Menu & Fresh Dishes | Bun Maska Café'
+  const pageDescription = category
+    ? `Explore our ${category} menu at Bun Maska Café. Prepared fresh with top-quality ingredients.`
+    : 'Explore our complete café menu featuring Bun Maska, Irani Chai, gourmet coffee, burgers, pasta, desserts, and seafood specials.'
+
+  const itemListJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: category ? `${category} Menu` : 'Bun Maska Café Menu',
+    description: pageDescription,
+    numberOfItems: visibleProducts.length,
+    itemListElement: visibleProducts.map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: item.title,
+      url: `https://bunmaskacafe.com/product/${item.slug}`,
+      image: item.variants?.[0]?.image ?? '',
+    })),
+  }
+
   return (
     <div className="space-y-8 pb-8">
+      <SEO
+        title={pageTitle}
+        description={pageDescription}
+        keywords={`bun maska menu, ${category ? category.toLowerCase() + ',' : ''} cafe food, irani chai, coffee items, online menu`}
+        jsonLd={itemListJsonLd}
+      />
       <section className="rounded-[2rem] bg-gradient-to-r from-slate-900 via-slate-800 to-orange-600 p-8 text-white shadow-xl shadow-orange-200/20">
         <p className="text-xs font-bold uppercase tracking-[0.32em] text-orange-200">Online menu</p>
         <h1 className="mt-4 text-4xl font-black md:text-5xl">Our best dishes</h1>

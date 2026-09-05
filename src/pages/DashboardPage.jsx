@@ -2,6 +2,7 @@ import SectionHeader from '../components/SectionHeader'
 import FoodCard from '../components/FoodCard'
 import HeroSlider from '../components/HeroSlider'
 import InfoBanner from '../components/InfoBanner'
+import SEO from '../components/SEO'
 import products from '../data/products.json'
 
 const popularItems = products.slice(0, 3)
@@ -12,9 +13,41 @@ const categories = [...new Set(products.map((product) => product.category))].map
   return { name: category, image: firstVariant?.image ?? '', count: categoryProducts.length }
 })
 
+const cafeJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CafeOrCoffeeShop',
+  name: 'Bun Maska Café',
+  image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=1200&q=80',
+  '@id': 'https://bunmaskacafe.com/#cafe',
+  url: 'https://bunmaskacafe.com',
+  telephone: '+1-555-123-4567',
+  priceRange: '₹₹',
+  servesCuisine: ['Café', 'Bakery', 'Irani Chai', 'Snacks', 'Coffee'],
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: '123 Café Street, Downtown',
+    addressLocality: 'City Center',
+    postalCode: '90001',
+    addressCountry: 'IN',
+  },
+  openingHoursSpecification: [
+    {
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+      opens: '11:00',
+      closes: '02:30',
+    },
+  ],
+}
+
 export default function DashboardPage() {
   return (
     <div className="space-y-10 text-slate-800">
+      <SEO
+        title="Bun Maska Café - Fresh Breads, Irani Chai & Gourmet Coffee"
+        description="Freshly baked artisanal bun maska, authentic Irani chai, gourmet coffee, burgers, and snacks. Order online for quick pickup or delivery."
+        jsonLd={cafeJsonLd}
+      />
       <HeroSlider />
 
       <section className="grid gap-4 rounded-[2rem] bg-white p-4 shadow-sm shadow-slate-200 md:grid-cols-3 md:p-6">

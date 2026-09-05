@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { login } from '../store/authSlice'
+import SEO from '../components/SEO'
 
 export default function LoginPage() {
   const dispatch = useDispatch()
@@ -20,6 +21,7 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-[65vh] items-center justify-center">
+      <SEO title="Sign In | Bun Maska Café" noindex={true} />
       <div className="w-full max-w-md rounded-[2rem] bg-white p-8 shadow-xl shadow-slate-200 border border-slate-100">
         <div className="mb-8 text-center">
           <span className="inline-flex rounded-full bg-orange-100 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.2em] text-orange-600">
