@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import PaymentResult from '../components/PaymentResult'
 import DemoPaymentModal from '../components/DemoPaymentModal'
+import DeliveryLocationPicker from '../components/DeliveryLocationPicker'
 import SEO from '../components/SEO'
 import { useCart } from '../context/useCart'
 
@@ -33,6 +34,20 @@ export default function CheckoutPage() {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
 
   const updateField = (event) => setForm((current) => ({ ...current, [event.target.name]: event.target.value }))
+
+  const handleLocationSelect = (loc) => {
+    setForm((current) => ({
+      ...current,
+      address: loc.address || current.address,
+      city: loc.city || current.city,
+      zip: loc.zip || current.zip,
+      notes: current.notes
+        ? current.notes
+        : loc.lat && loc.lng
+          ? `Delivery Pin: ${loc.lat.toFixed(5)}, ${loc.lng.toFixed(5)}`
+          : current.notes,
+    }))
+  }
 
   const completeOrder = (message, orderId) => {
     setStatus({ type: 'success', message, orderId })
@@ -107,12 +122,17 @@ export default function CheckoutPage() {
         <div className="mt-8 space-y-8">
           <div>
             <p className="mb-4 text-sm font-bold uppercase tracking-[0.2em] text-slate-600">Delivery details</p>
-            <div className="grid gap-4 md:grid-cols-2">
-              <input required name="name" value={form.name} onChange={updateField} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-orange-400" placeholder="Full name" />
-              <input required name="phone" value={form.phone} onChange={updateField} type="tel" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-orange-400" placeholder="Phone number" />
-              <input required name="address" value={form.address} onChange={updateField} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-orange-400 md:col-span-2" placeholder="Street address" />
-              <input required name="city" value={form.city} onChange={updateField} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-orange-400" placeholder="City" />
-              <input required name="zip" value={form.zip} onChange={updateField} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-orange-400" placeholder="ZIP code" />
+            <div className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <input required name="name" value={form.name} onChange={updateField} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-orange-400" placeholder="Full name" />
+                <input required name="phone" value={form.phone} onChange={updateField} type="tel" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-orange-400" placeholder="Phone number" />
+                <input required name="address" value={form.address} onChange={updateField} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-orange-400 md:col-span-2" placeholder="Street address" />
+                <input required name="city" value={form.city} onChange={updateField} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-orange-400" placeholder="City" />
+                <input required name="zip" value={form.zip} onChange={updateField} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-orange-400" placeholder="ZIP code" />
+              </div>
+
+              {/* Interactive Live Map & GPS Location Picker */}
+              <DeliveryLocationPicker onSelectLocation={handleLocationSelect} currentAddress={form.address} />
             </div>
           </div>
           <div>
