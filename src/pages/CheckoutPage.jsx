@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import PaymentResult from '../components/PaymentResult'
 import DemoPaymentModal from '../components/DemoPaymentModal'
-import DeliveryLocationPicker from '../components/DeliveryLocationPicker'
 import SEO from '../components/SEO'
 import { useCart } from '../context/useCart'
 
@@ -116,35 +115,34 @@ export default function CheckoutPage() {
     <>
       <SEO title="Checkout | Bun Maska Café" noindex={true} />
       <form onSubmit={handleSubmit} className="grid gap-8 pb-10 xl:grid-cols-[1.3fr_0.7fr]">
-      <section className="rounded-[2rem] bg-white p-6 shadow-sm shadow-slate-200 md:p-8">
-        <p className="text-xs font-bold uppercase tracking-[0.3em] text-orange-500">Secure checkout</p>
-        <h1 className="mt-3 text-3xl font-black text-slate-900">Complete your order</h1>
-        <div className="mt-8 space-y-8">
-          <div>
-            <p className="mb-4 text-sm font-bold uppercase tracking-[0.2em] text-slate-600">Delivery details</p>
-            <div className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <input required name="name" value={form.name} onChange={updateField} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-orange-400" placeholder="Full name" />
-                <input required name="phone" value={form.phone} onChange={updateField} type="tel" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-orange-400" placeholder="Phone number" />
-                <input required name="address" value={form.address} onChange={updateField} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-orange-400 md:col-span-2" placeholder="Street address" />
-                <input required name="city" value={form.city} onChange={updateField} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-orange-400" placeholder="City" />
-                <input required name="zip" value={form.zip} onChange={updateField} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-orange-400" placeholder="ZIP code" />
-              </div>
+        <section className="rounded-[2rem] bg-white p-6 shadow-sm shadow-slate-200 md:p-8">
+          <p className="text-xs font-bold uppercase tracking-[0.3em] text-orange-500">Secure checkout</p>
+          <h1 className="mt-3 text-3xl font-black text-slate-900">Complete your order</h1>
+          <div className="mt-8 space-y-8">
+            <div>
+              <p className="mb-4 text-sm font-bold uppercase tracking-[0.2em] text-slate-600">Delivery details</p>
+              <div className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <input required name="name" value={form.name} onChange={updateField} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-orange-400" placeholder="Full name" />
+                  <input required name="phone" value={form.phone} onChange={updateField} type="tel" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-orange-400" placeholder="Phone number" />
+                  <input required name="address" value={form.address} onChange={updateField} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-orange-400 md:col-span-2" placeholder="Street address" />
+                  <input required name="city" value={form.city} onChange={updateField} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-orange-400" placeholder="City" />
+                  <input required name="zip" value={form.zip} onChange={updateField} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-orange-400" placeholder="ZIP code" />
+                </div>
 
-              {/* Interactive Live Map & GPS Location Picker */}
-              <DeliveryLocationPicker onSelectLocation={handleLocationSelect} currentAddress={form.address} />
+                {/* Interactive Live Map & GPS Location Picker */}
+              </div>
             </div>
-          </div>
-          <div>
-            <p className="mb-4 text-sm font-bold uppercase tracking-[0.2em] text-slate-600">Choose payment</p>
-            <div className="space-y-3">
-              {paymentMethods.map((method) => <label key={method.id} className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition ${paymentMethod === method.id ? 'border-orange-400 bg-orange-50' : 'border-slate-200 bg-slate-50'}`}><input type="radio" name="paymentMethod" value={method.id} checked={paymentMethod === method.id} onChange={(event) => setPaymentMethod(event.target.value)} className="mt-1" /><span><strong className="block text-slate-900">{method.title}</strong><small className="text-slate-600">{method.detail}</small></span></label>)}
+            <div>
+              <p className="mb-4 text-sm font-bold uppercase tracking-[0.2em] text-slate-600">Choose payment</p>
+              <div className="space-y-3">
+                {paymentMethods.map((method) => <label key={method.id} className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition ${paymentMethod === method.id ? 'border-orange-400 bg-orange-50' : 'border-slate-200 bg-slate-50'}`}><input type="radio" name="paymentMethod" value={method.id} checked={paymentMethod === method.id} onChange={(event) => setPaymentMethod(event.target.value)} className="mt-1" /><span><strong className="block text-slate-900">{method.title}</strong><small className="text-slate-600">{method.detail}</small></span></label>)}
+              </div>
             </div>
+            <textarea name="notes" value={form.notes} onChange={updateField} rows="4" placeholder="Any instructions for the kitchen or delivery?" className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-orange-400" />
           </div>
-          <textarea name="notes" value={form.notes} onChange={updateField} rows="4" placeholder="Any instructions for the kitchen or delivery?" className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-orange-400" />
-        </div>
-      </section>
-      <aside className="rounded-[2rem] bg-slate-900 p-6 text-white shadow-xl shadow-slate-300 md:p-8"><h2 className="text-2xl font-black">Order summary</h2><div className="mt-6 space-y-4">{items.map((item) => <div key={item.key} className="flex items-center justify-between gap-4 text-sm text-slate-300"><span>{item.title} ({item.sizeLabel}) x{item.quantity}</span><span>{formatPrice(item.price * item.quantity)}</span></div>)}</div><div className="mt-6 space-y-3 border-t border-slate-700 pt-5 text-sm text-slate-300"><div className="flex justify-between"><span>Subtotal</span><span>{formatPrice(subtotal)}</span></div><div className="flex justify-between"><span>Delivery</span><span>{formatPrice(delivery)}</span></div><div className="flex justify-between"><span>Tax</span><span>{formatPrice(tax)}</span></div></div><div className="mt-6 flex items-center justify-between border-y border-slate-700 py-4"><span className="text-lg font-bold">Total</span><span className="text-2xl font-black text-orange-300">{formatPrice(total)}</span></div><button disabled={processing} type="submit" className="mt-8 w-full rounded-full bg-orange-500 px-6 py-4 text-base font-bold text-white transition hover:bg-orange-600 disabled:cursor-wait disabled:opacity-60">{processing ? 'Connecting to Razorpay...' : paymentMethod === 'cod' ? 'Confirm cash order' : `Pay ${formatPrice(total)} securely`}</button><p className="mt-4 text-center text-xs text-slate-400">{paymentMethod === 'cod' ? 'Payment is collected at delivery.' : 'Online payments are handled securely by Razorpay.'}</p></aside>
+        </section>
+        <aside className="rounded-[2rem] bg-slate-900 p-6 text-white shadow-xl shadow-slate-300 md:p-8"><h2 className="text-2xl font-black">Order summary</h2><div className="mt-6 space-y-4">{items.map((item) => <div key={item.key} className="flex items-center justify-between gap-4 text-sm text-slate-300"><span>{item.title} ({item.sizeLabel}) x{item.quantity}</span><span>{formatPrice(item.price * item.quantity)}</span></div>)}</div><div className="mt-6 space-y-3 border-t border-slate-700 pt-5 text-sm text-slate-300"><div className="flex justify-between"><span>Subtotal</span><span>{formatPrice(subtotal)}</span></div><div className="flex justify-between"><span>Delivery</span><span>{formatPrice(delivery)}</span></div><div className="flex justify-between"><span>Tax</span><span>{formatPrice(tax)}</span></div></div><div className="mt-6 flex items-center justify-between border-y border-slate-700 py-4"><span className="text-lg font-bold">Total</span><span className="text-2xl font-black text-orange-300">{formatPrice(total)}</span></div><button disabled={processing} type="submit" className="mt-8 w-full rounded-full bg-orange-500 px-6 py-4 text-base font-bold text-white transition hover:bg-orange-600 disabled:cursor-wait disabled:opacity-60">{processing ? 'Connecting to Razorpay...' : paymentMethod === 'cod' ? 'Confirm cash order' : `Pay ${formatPrice(total)} securely`}</button><p className="mt-4 text-center text-xs text-slate-400">{paymentMethod === 'cod' ? 'Payment is collected at delivery.' : 'Online payments are handled securely by Razorpay.'}</p></aside>
       </form>
       {demoPaymentOpen ? <DemoPaymentModal amount={total} onClose={() => setDemoPaymentOpen(false)} onSuccess={(orderId) => { setDemoPaymentOpen(false); completeOrder('Your demo online payment was successful and your order is being prepared.', orderId) }} onFailure={(message) => { setDemoPaymentOpen(false); failPayment(message) }} /> : null}
     </>
