@@ -8,7 +8,7 @@ export default function LoginPage() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const location = useLocation()
-  const from = location.state?.from?.pathname || '/profile'
+  const from = location.state?.from?.pathname || location.state?.from || '/checkout'
 
   const [email, setEmail] = useState('user@bunmaska.com')
   const [password, setPassword] = useState('123456')

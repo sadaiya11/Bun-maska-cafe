@@ -25,7 +25,6 @@ export default function PublicLayout() {
           <Route path="/product" element={<ProductListPage />} />
           <Route path="/product/:slug" element={<ProductDetailPage />} />
           <Route path="/cart" element={<CartPage />} />
-          <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/offers" element={<InfoPage title="Special Offers" description="Enjoy the best combo deals, family packs, and chef specials prepared fresh for you." />} />
           <Route path="/login" element={<LoginPage />} />
           <Route
@@ -48,6 +47,14 @@ export default function PublicLayout() {
           />
 
           {/* Protected Routes: Accessible only when logged in */}
+          <Route
+            path="/checkout"
+            element={
+              <ProtectedRoute>
+                <CheckoutPage />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/orders"
             element={
