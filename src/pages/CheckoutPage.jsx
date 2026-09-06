@@ -4,6 +4,7 @@ import PaymentResult from '../components/PaymentResult'
 import DemoPaymentModal from '../components/DemoPaymentModal'
 import SEO from '../components/SEO'
 import { useCart } from '../context/useCart'
+import { createOrder } from '../services/api'
 
 const formatPrice = (price) => `₹${price.toFixed(2)}`
 const paymentMethods = [
@@ -30,6 +31,12 @@ export default function CheckoutPage() {
   const [status, setStatus] = useState(null)
   const [processing, setProcessing] = useState(false)
   const [demoPaymentOpen, setDemoPaymentOpen] = useState(false)
+
+  // Live Location State
+  const [locating, setLocating] = useState(false)
+  const [locationMessage, setLocationMessage] = useState('')
+  const [detectedCoords, setDetectedCoords] = useState(null)
+
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
 
   const updateField = (event) => setForm((current) => ({ ...current, [event.target.name]: event.target.value }))
@@ -48,7 +55,21 @@ export default function CheckoutPage() {
     }))
   }
 
-  const completeOrder = (message, orderId) => {
+  // Create Order using API Service
+  const completeOrder = async (message, orderId) => {
+    try {
+      await createOrder({
+        orderId: orderId || `BM-${Date.now()}`,
+        customer: form,
+        amount: total,
+        currency: 'INR',
+        items,
+        status: paymentMethod === 'cod' ? 'CONFIRMED' : 'PAID',
+      })
+    } catch (e) {
+      console.warn('createOrder API save warning:', e.message)
+    }
+
     setStatus({ type: 'success', message, orderId })
     clearCart()
   }
@@ -66,6 +87,13 @@ export default function CheckoutPage() {
       if (!response.ok) throw new Error('Backend payment endpoint is not running on Vercel.')
 
       const order = await response.json()
+
+      // If backend returned a demo order (missing live Razorpay Secret Key in backend/.env), launch Demo Payment Sheet
+      if (order.isDemo) {
+        setDemoPaymentOpen(true)
+        return
+      }
+
       await loadRazorpay()
       const razorpay = new window.Razorpay({
         key: import.meta.env.VITE_RAZORPAY_KEY_ID,
