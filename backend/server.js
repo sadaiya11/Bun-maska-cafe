@@ -12,15 +12,22 @@ const PORT = process.env.PORT || 5000
 app.use(cors())
 app.use(express.json())
 
-// Initialize Razorpay Instance
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
-})
-
+// Initialize Razorpay Instance safely
 const hasRazorpayCredentials = Boolean(
   process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET,
 )
+
+let razorpay = null
+if (hasRazorpayCredentials) {
+  try {
+    razorpay = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
+    })
+  } catch (e) {
+    console.warn('Razorpay initialization warning:', e.message)
+  }
+}
 
 // Health Check Endpoint (Includes Supabase & Prisma Status)
 app.get('/api/health', async (req, res) => {
@@ -114,9 +121,15 @@ app.post('/api/payments/create-order', async (req, res) => {
   try {
     const { amount, currency = 'INR' } = req.body
 
-    if (!hasRazorpayCredentials) {
-      return res.status(503).json({
-        error: 'Razorpay is not configured. Add test credentials to backend/.env.',
+    if (!hasRazorpayCredentials || !razorpay) {
+      return res.json({
+        id: `order_demo_${Date.now()}`,
+        entity: 'order',
+        amount: Math.round(amount),
+        currency,
+        receipt: `receipt_${Date.now()}`,
+        status: 'created',
+        isDemo: true,
       })
     }
 
