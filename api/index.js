@@ -34,16 +34,34 @@ async function supabaseRequest(path, options = {}) {
 }
 
 async function getOrders(query) {
-  const params = new URLSearchParams({ select: '*,items(*)', order: 'createdAt.desc' })
+  const params = new URLSearchParams({ select: '*,order_items(*)', order: 'createdAt.desc' })
   const email = query.get('email')
   if (email) params.set('customer->>email', `eq.${email}`)
-  return supabaseRequest(`orders?${params.toString()}`)
+  
+  let result = await supabaseRequest(`orders?${params.toString()}`)
+  
+  // Fallback if relationship 'order_items' is not found in schema cache
+  if (result.status >= 400) {
+    const fallbackParams = new URLSearchParams({ select: '*', order: 'createdAt.desc' })
+    if (email) fallbackParams.set('customer->>email', `eq.${email}`)
+    result = await supabaseRequest(`orders?${fallbackParams.toString()}`)
+  }
+
+  if (result.status === 200 && Array.isArray(result.body)) {
+    const mapped = result.body.map(order => ({
+      ...order,
+      items: order.items || order.order_items || []
+    }))
+    return { status: 200, body: mapped }
+  }
+
+  return result
 }
 
 async function saveOrder(body) {
   const { orderId, customer, amount, currency = 'INR', items = [], paymentId, status = 'CONFIRMED' } = body
   if (orderId) {
-    const existingResult = await supabaseRequest(`orders?orderId=eq.${encodeURIComponent(orderId)}&select=*,items(*)`)
+    const existingResult = await supabaseRequest(`orders?orderId=eq.${encodeURIComponent(orderId)}&select=*`)
     if (existingResult.status < 400 && existingResult.body?.length) {
       return { status: 200, body: { success: true, order: existingResult.body[0], alreadyExists: true } }
     }
