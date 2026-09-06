@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
 import PaymentResult from '../components/PaymentResult'
 import DemoPaymentModal from '../components/DemoPaymentModal'
@@ -26,6 +27,7 @@ function loadRazorpay() {
 
 export default function CheckoutPage() {
   const { items, subtotal, delivery, tax, total, clearCart } = useCart()
+  const { user } = useSelector((state) => state.auth)
   const [paymentMethod, setPaymentMethod] = useState('razorpay')
   const [form, setForm] = useState({ name: '', phone: '', address: '', city: '', zip: '', notes: '' })
   const [status, setStatus] = useState(null)
@@ -57,17 +59,20 @@ export default function CheckoutPage() {
 
   // Create Order using API Service
   const completeOrder = async (message, orderId) => {
-    try {
-      await createOrder({
-        orderId: orderId || `BM-${Date.now()}`,
-        customer: form,
-        amount: total,
-        currency: 'INR',
-        items,
-        status: paymentMethod === 'cod' ? 'CONFIRMED' : 'PAID',
-      })
-    } catch (e) {
-      console.warn('createOrder API save warning:', e.message)
+    const customer = { ...form, email: user?.email || form.email || '' }
+    if (paymentMethod === 'cod') {
+      try {
+        await createOrder({
+          orderId: orderId || `BM-${Date.now()}`,
+          customer,
+          amount: total,
+          currency: 'INR',
+          items,
+          status: 'CONFIRMED',
+        })
+      } catch (e) {
+        console.warn('createOrder API save warning:', e.message)
+      }
     }
 
     setStatus({ type: 'success', message, orderId })
@@ -78,11 +83,12 @@ export default function CheckoutPage() {
 
   const startOnlinePayment = async () => {
     setProcessing(true)
+    const customer = { ...form, email: user?.email || form.email || '' }
     try {
       const response = await fetch(`${API_BASE_URL}/api/payments/create-order`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: Math.round(total * 100), currency: 'INR', items, customer: form }),
+        body: JSON.stringify({ amount: Math.round(total * 100), currency: 'INR', items, customer }),
       })
       if (!response.ok) throw new Error('Backend payment endpoint is not running on Vercel.')
 
@@ -107,7 +113,7 @@ export default function CheckoutPage() {
           const verification = await fetch(`${API_BASE_URL}/api/payments/verify`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ...paymentResponse, customer: form, items }),
+            body: JSON.stringify({ ...paymentResponse, customer, items, amount: total }),
           })
           if (!verification.ok) {
             failPayment('Payment was received but order verification failed. Please contact support with your payment details.')

@@ -52,6 +52,13 @@ app.post('/api/db/orders', async (req, res) => {
   try {
     const { orderId, customer, amount, currency = 'INR', items, paymentId, status = 'CONFIRMED' } = req.body
 
+    const existingOrder = orderId
+      ? await prisma.order.findUnique({ where: { orderId }, include: { items: true } })
+      : null
+    if (existingOrder) {
+      return res.status(200).json({ success: true, order: existingOrder, alreadyExists: true })
+    }
+
     const newOrder = await prisma.order.create({
       data: {
         orderId: orderId || `BM-${Date.now()}`,
