@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 export default function AdminSidebar({ 
   activeTab, 
@@ -72,6 +73,23 @@ export default function AdminSidebar({
                 </button>
               );
             })}
+
+            {/* POS Terminal Fast Link */}
+            <Link
+              to="/pos"
+              className="w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-left transition-all text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 mt-3"
+            >
+              <div className="flex items-center space-x-3">
+                <span className="text-xl">🛍️</span>
+                <div>
+                  <div className="text-sm font-bold leading-tight">POS Billing Counter</div>
+                  <div className="text-[11px] text-amber-400/70 font-normal">Touch billing & receipts</div>
+                </div>
+              </div>
+              <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500 text-slate-950 font-bold">
+                OPEN ➔
+              </span>
+            </Link>
           </nav>
         </div>
 

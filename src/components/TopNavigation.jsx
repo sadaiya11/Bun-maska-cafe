@@ -23,6 +23,7 @@ export default function TopNavigation({ brand = 'Bun Maska Café', cartCount = 0
     { label: 'About', path: '/about' },
     { label: 'Contact', path: '/contact' },
     { label: 'Admin 👑', path: '/admin' },
+    { label: 'POS Billing 🛍️', path: '/pos' },
   ]
 
   const handleLogout = () => {
