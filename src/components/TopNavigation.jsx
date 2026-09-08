@@ -13,17 +13,17 @@ export default function TopNavigation({ brand = 'Bun Maska Café', cartCount = 0
     { label: 'Home', path: '/dashboard' },
     { label: 'Products', path: '/product' },
     { label: 'Cart', path: '/cart' },
-    { label: 'Offers', path: '/offers' },
+    // { label: 'Offers', path: '/offers' },
     ...(isAuthenticated
       ? [
-          { label: 'My Orders', path: '/orders' },
-          { label: 'Profile', path: '/profile' },
-        ]
+        { label: 'Orders', path: '/orders' },
+        { label: 'Profile', path: '/profile' },
+      ]
       : []),
     { label: 'About', path: '/about' },
     { label: 'Contact', path: '/contact' },
-    { label: 'Admin 👑', path: '/admin' },
-    { label: 'POS Billing 🛍️', path: '/pos' },
+    { label: 'Admin', path: '/admin' },
+    { label: 'POS', path: '/pos' },
   ]
 
   const handleLogout = () => {
@@ -51,8 +51,7 @@ export default function TopNavigation({ brand = 'Bun Maska Café', cartCount = 0
               key={item.path}
               to={item.path}
               className={({ isActive }) =>
-                `rounded-full px-3.5 py-1.5 text-sm font-semibold transition ${
-                  isActive ? 'bg-orange-500 text-white shadow-md shadow-orange-200' : 'text-slate-700 hover:bg-slate-200'
+                `rounded-full px-3.5 py-1.5 text-sm font-semibold transition ${isActive ? 'bg-orange-500 text-white shadow-md shadow-orange-200' : 'text-slate-700 hover:bg-slate-200'
                 }`
               }
             >
@@ -124,8 +123,7 @@ export default function TopNavigation({ brand = 'Bun Maska Café', cartCount = 0
                 to={item.path}
                 onClick={() => setMenuOpen(false)}
                 className={({ isActive }) =>
-                  `rounded-xl px-4 py-3 text-sm font-semibold transition ${
-                    isActive ? 'bg-orange-500 text-white' : 'text-slate-700 hover:bg-orange-50 hover:text-orange-600'
+                  `rounded-xl px-4 py-3 text-sm font-semibold transition ${isActive ? 'bg-orange-500 text-white' : 'text-slate-700 hover:bg-orange-50 hover:text-orange-600'
                   }`
                 }
               >
