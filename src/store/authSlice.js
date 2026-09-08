@@ -10,7 +10,7 @@ try {
 }
 
 const initialState = {
-  user: storedUser ? JSON.parse(storedUser) : null,
+  user: storedUser,
   isAuthenticated: Boolean(storedUser),
 }
 
