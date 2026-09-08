@@ -27,7 +27,7 @@ export default function App() {
   const isFirstLoadRef = useRef(true);
 
   // Load orders function
-  const loadOrders = async () => {
+  const loadOrders = useCallback(async () => {
     setIsRefreshing(true);
     const data = await fetchAdminOrders();
     setOrders(data);
@@ -44,17 +44,20 @@ export default function App() {
 
     prevOrdersCountRef.current = data.length;
     isFirstLoadRef.current = false;
-  };
+  }, [soundEnabled]);
 
   // Initial load and 5-second polling interval
   useEffect(() => {
-    loadOrders();
+    const initialLoad = setTimeout(() => loadOrders(), 0);
     const interval = setInterval(() => {
       loadOrders();
     }, 5000); // Poll every 5s for live customer orders
 
-    return () => clearInterval(interval);
-  }, []);
+    return () => {
+      clearTimeout(initialLoad);
+      clearInterval(interval);
+    };
+  }, [loadOrders]);
 
   // Save sound setting
   const toggleSound = () => {
@@ -98,7 +101,7 @@ export default function App() {
       <OrderNotificationToast 
         order={newOrderToast} 
         onClose={() => setNewOrderToast(null)} 
-        onViewOrder={(order) => {
+        onViewDetails={(order) => {
           setSelectedOrder(order);
           setActiveTab('orders');
         }}

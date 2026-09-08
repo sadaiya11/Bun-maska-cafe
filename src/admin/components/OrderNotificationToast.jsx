@@ -1,5 +1,3 @@
-import React from 'react'
-
 export default function OrderNotificationToast({ newOrder, onClose, onViewDetails }) {
   if (!newOrder) return null
 

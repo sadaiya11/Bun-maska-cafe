@@ -63,6 +63,18 @@ export async function fetchAdminOrders() {
  */
 export async function updateOrderStatus(orderId, newStatus) {
   try {
+    const response = await fetch(`${API_BASE_URL}/api/db/orders/${encodeURIComponent(orderId)}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus }),
+    })
+    if (response.ok) return true
+    if (response.status !== 404) return false
+  } catch (error) {
+    console.warn('Order status API unavailable; updating local order state:', error.message)
+  }
+
+  try {
     const localOrders = getLocalOrders()
     const updated = localOrders.map((o) => {
       if ((o.orderId || o.id) === orderId) {

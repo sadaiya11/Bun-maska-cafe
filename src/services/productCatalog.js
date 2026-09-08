@@ -11,7 +11,8 @@ const cloneProducts = (products) => products.map((product) => ({
 export function mergeCatalogProducts(savedProducts = []) {
   const savedBySlug = new Map(savedProducts.map((product) => [product.slug, product]))
 
-  return cloneProducts(fallbackProducts).map((product) => {
+  const fallback = cloneProducts(fallbackProducts)
+  const merged = fallback.map((product) => {
     const saved = savedBySlug.get(product.slug)
     if (!saved) return { ...product, inStock: product.inStock !== false }
 
@@ -31,6 +32,13 @@ export function mergeCatalogProducts(savedProducts = []) {
       inStock: saved.inStock !== false,
     }
   })
+
+  const fallbackSlugs = new Set(fallback.map((product) => product.slug))
+  const remoteOnly = savedProducts
+    .filter((product) => product.slug && !fallbackSlugs.has(product.slug))
+    .map((product) => ({ ...product, inStock: product.inStock !== false }))
+
+  return [...merged, ...remoteOnly]
 }
 
 function getStoredProducts() {

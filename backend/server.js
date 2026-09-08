@@ -186,6 +186,25 @@ app.get('/api/db/orders', async (req, res) => {
   }
 })
 
+app.patch('/api/db/orders/:orderId/status', async (req, res) => {
+  try {
+    const allowedStatuses = ['PENDING', 'CONFIRMED', 'PREPARING', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED', 'PAID']
+    const { status } = req.body
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({ error: 'Invalid order status.' })
+    }
+
+    const order = await prisma.order.update({
+      where: { orderId: req.params.orderId },
+      data: { status },
+      include: { items: true },
+    })
+    res.json(order)
+  } catch (error) {
+    res.status(error.code === 'P2025' ? 404 : 500).json({ error: 'Failed to update order status.', details: error.message })
+  }
+})
+
 /**
  * Route: POST /api/payments/create-order
  * Description: Create a new Razorpay order (or mock order if secret key not set)

@@ -1,17 +1,10 @@
+import { useEffect, useState } from 'react'
 import SectionHeader from '../components/SectionHeader'
 import FoodCard from '../components/FoodCard'
 import HeroSlider from '../components/HeroSlider'
 import InfoBanner from '../components/InfoBanner'
 import SEO from '../components/SEO'
-import products from '../data/products.json'
-
-const popularItems = products.slice(0, 3)
-const categories = [...new Set(products.map((product) => product.category))].map((category) => {
-  const categoryProducts = products.filter((product) => product.category === category)
-  const firstVariant = categoryProducts[0]?.variants?.[0]
-
-  return { name: category, image: firstVariant?.image ?? '', count: categoryProducts.length }
-})
+import { getLocalCatalog, loadCatalog } from '../services/productCatalog'
 
 const cafeJsonLd = {
   '@context': 'https://schema.org',
@@ -41,6 +34,19 @@ const cafeJsonLd = {
 }
 
 export default function DashboardPage() {
+  const [products, setProducts] = useState(getLocalCatalog)
+
+  useEffect(() => {
+    loadCatalog().then(setProducts)
+  }, [])
+
+  const popularItems = products.slice(0, 3)
+  const categories = [...new Set(products.map((product) => product.category))].map((category) => {
+    const categoryProducts = products.filter((product) => product.category === category)
+    const firstVariant = categoryProducts[0]?.variants?.[0]
+    return { name: category, image: firstVariant?.image ?? '', count: categoryProducts.length }
+  })
+
   return (
     <div className="space-y-10 text-slate-800">
       <SEO

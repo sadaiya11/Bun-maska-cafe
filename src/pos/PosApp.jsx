@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import PosHeader from './components/PosHeader';
 import PosMenuGrid from './components/PosMenuGrid';
 import PosCartPanel from './components/PosCartPanel';

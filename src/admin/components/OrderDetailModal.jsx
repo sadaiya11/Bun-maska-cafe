@@ -1,5 +1,3 @@
-import React from 'react'
-
 export default function OrderDetailModal({ order, onClose, onUpdateStatus }) {
   if (!order) return null
 
@@ -7,7 +5,7 @@ export default function OrderDetailModal({ order, onClose, onUpdateStatus }) {
   const items = order.items || []
   const orderId = order.orderId || order.id || 'N/A'
   const isPaid = order.status === 'PAID' || order.status === 'CONFIRMED' || order.status === 'DELIVERED'
-  const formattedDate = new Date(order.createdAt || Date.now()).toLocaleString()
+  const formattedDate = order.createdAt ? new Date(order.createdAt).toLocaleString() : 'Date unavailable'
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm animate-fade-in">

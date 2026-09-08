@@ -34,28 +34,9 @@ export default function CheckoutPage() {
   const [processing, setProcessing] = useState(false)
   const [demoPaymentOpen, setDemoPaymentOpen] = useState(false)
 
-  // Live Location State
-  const [locating, setLocating] = useState(false)
-  const [locationMessage, setLocationMessage] = useState('')
-  const [detectedCoords, setDetectedCoords] = useState(null)
-
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
 
   const updateField = (event) => setForm((current) => ({ ...current, [event.target.name]: event.target.value }))
-
-  const handleLocationSelect = (loc) => {
-    setForm((current) => ({
-      ...current,
-      address: loc.address || current.address,
-      city: loc.city || current.city,
-      zip: loc.zip || current.zip,
-      notes: current.notes
-        ? current.notes
-        : loc.lat && loc.lng
-          ? `Delivery Pin: ${loc.lat.toFixed(5)}, ${loc.lng.toFixed(5)}`
-          : current.notes,
-    }))
-  }
 
   // Create Order using API Service
   const completeOrder = async (message, orderId, payment = {}) => {
@@ -76,12 +57,14 @@ export default function CheckoutPage() {
           status: paymentMethod === 'cod' ? 'CONFIRMED' : 'PAID',
         })
       } catch (e) {
-        console.warn('createOrder API save warning:', e.message)
+        setStatus({ type: 'failure', message: `We could not save your order: ${e.message} Please try again.` })
+        return false
       }
     }
 
     setStatus({ type: 'success', message, orderId })
     clearCart()
+    return true
   }
 
   const failPayment = (message) => setStatus({ type: 'failure', message })
@@ -138,10 +121,12 @@ export default function CheckoutPage() {
     }
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
     if (paymentMethod === 'cod') {
-      completeOrder('Your cash-on-delivery order has been confirmed. Please pay when it arrives.', `COD-${Date.now()}`)
+      setProcessing(true)
+      await completeOrder('Your cash-on-delivery order has been confirmed. Please pay when it arrives.', `COD-${Date.now()}`)
+      setProcessing(false)
       return
     }
     startOnlinePayment()

@@ -1,6 +1,13 @@
 import { createSlice } from '@reduxjs/toolkit'
 
-const storedUser = localStorage.getItem('bun-maska-user')
+let storedUser = null
+try {
+  const rawUser = localStorage.getItem('bun-maska-user')
+  storedUser = rawUser ? JSON.parse(rawUser) : null
+  if (!storedUser || typeof storedUser.email !== 'string') storedUser = null
+} catch {
+  localStorage.removeItem('bun-maska-user')
+}
 
 const initialState = {
   user: storedUser ? JSON.parse(storedUser) : null,

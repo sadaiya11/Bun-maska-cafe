@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 export default function PosMenuGrid({ products, onAddToCart }) {
   const [selectedCategory, setSelectedCategory] = useState('ALL');

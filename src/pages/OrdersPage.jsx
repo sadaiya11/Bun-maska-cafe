@@ -24,25 +24,7 @@ export default function OrdersPage() {
       } catch (err) {
         console.warn('Using fallback orders due to network/server:', err.message)
         setError(err.message)
-        // Fallback sample orders if server API is offline
-        setOrders([
-          {
-            id: 'BM-1048',
-            orderId: 'BM-1048',
-            createdAt: new Date().toISOString(),
-            items: [{ title: 'Bun Maska', quantity: 2 }, { title: 'Irani Chai', quantity: 1 }],
-            amount: 420.0,
-            status: 'CONFIRMED',
-          },
-          {
-            id: 'BM-1049',
-            orderId: 'BM-1049',
-            createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-            items: [{ title: 'Cheese Omelette', quantity: 1 }, { title: 'Cold Coffee', quantity: 1 }],
-            amount: 185.0,
-            status: 'PAID',
-          },
-        ])
+        setOrders([])
       } finally {
         setLoading(false)
       }
@@ -67,6 +49,7 @@ export default function OrdersPage() {
           </div>
         ) : !orders.length ? (
           <div className="py-12 text-center">
+            {error ? <p className="mb-3 text-sm font-semibold text-rose-600">{error}</p> : null}
             <p className="text-xl font-bold text-slate-800">No orders found</p>
             <p className="mt-2 text-sm text-slate-500">Order something fresh from our menu!</p>
             <Link to="/product" className="mt-5 inline-block rounded-full bg-orange-500 px-6 py-3 font-bold text-white transition hover:bg-orange-600">
@@ -77,11 +60,11 @@ export default function OrdersPage() {
           <div className="mt-8 space-y-4">
             {orders.map((order) => {
               const displayId = order.orderId || order.id || 'BM-Order'
-              const formattedDate = new Date(order.createdAt || Date.now()).toLocaleDateString('en-US', {
+              const formattedDate = order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'short',
                 day: 'numeric',
-              })
+              }) : 'Date unavailable'
 
               const itemsSummary = Array.isArray(order.items)
                 ? order.items.map((i) => `${i.quantity}x ${i.title}`).join(', ')
