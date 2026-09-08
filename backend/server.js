@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 5000
 
 // Middleware
 app.use(cors())
-app.use(express.json())
+app.use(express.json({ limit: '3mb' }))
 
 // Initialize Razorpay Instance safely
 const hasRazorpayCredentials = Boolean(
@@ -27,6 +27,46 @@ if (hasRazorpayCredentials) {
   } catch (e) {
     console.warn('Razorpay initialization warning:', e.message)
   }
+}
+
+const PRODUCT_IMAGE_BUCKET = 'product-images'
+
+async function uploadProductImage(slug, dataUrl, contentType = 'image/jpeg') {
+  if (!slug || !dataUrl || !String(dataUrl).startsWith('data:image/')) {
+    throw new Error('A product slug and image file are required.')
+  }
+  const storageKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!process.env.SUPABASE_URL || !storageKey) {
+    throw new Error('Supabase Storage requires SUPABASE_URL and a server Secret key.')
+  }
+
+  const [, base64] = String(dataUrl).split(',', 2)
+  const file = Buffer.from(base64 || '', 'base64')
+  if (!file.length || file.length > 2 * 1024 * 1024) throw new Error('Image must be 2 MB or smaller.')
+
+  const extension = contentType === 'image/png' ? 'png' : contentType === 'image/webp' ? 'webp' : contentType === 'image/gif' ? 'gif' : 'jpg'
+  const safeSlug = slug.replace(/[^a-z0-9-]/gi, '-')
+  const objectPath = `products/${safeSlug}-${Date.now()}.${extension}`
+  const headers = {
+    apikey: storageKey,
+    Authorization: `Bearer ${storageKey}`,
+  }
+
+  // Creating an existing bucket returns a conflict, which is safe to ignore.
+  await fetch(`${process.env.SUPABASE_URL}/storage/v1/bucket`, {
+    method: 'POST',
+    headers: { ...headers, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: PRODUCT_IMAGE_BUCKET, name: PRODUCT_IMAGE_BUCKET, public: true }),
+  })
+
+  const response = await fetch(`${process.env.SUPABASE_URL}/storage/v1/object/${PRODUCT_IMAGE_BUCKET}/${objectPath}`, {
+    method: 'POST',
+    headers: { ...headers, 'Content-Type': contentType, 'x-upsert': 'false' },
+    body: file,
+  })
+  if (!response.ok) throw new Error(await response.text() || 'Storage upload failed.')
+
+  return `${process.env.SUPABASE_URL}/storage/v1/object/public/${PRODUCT_IMAGE_BUCKET}/${objectPath}`
 }
 
 // Health Check Endpoint (Includes Supabase & Prisma Status)
@@ -74,10 +114,21 @@ app.put('/api/db/products/:slug', async (req, res) => {
   }
 })
 
+// Route: POST /api/db/product-images - Upload a customer-visible product image.
+app.post('/api/db/product-images', async (req, res) => {
+  try {
+    const { slug, image, contentType } = req.body
+    const imageUrl = await uploadProductImage(slug, image, contentType)
+    res.status(201).json({ imageUrl })
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to upload product image', details: error.message })
+  }
+})
+
 // Route: POST /api/db/orders - Save Order into Supabase DB via Prisma
 app.post('/api/db/orders', async (req, res) => {
   try {
-    const { orderId, customer, amount, currency = 'INR', items, paymentId, status = 'CONFIRMED' } = req.body
+    const { orderId, customer, amount, currency = 'INR', items, paymentId, paymentMethod, paymentStatus, status = 'CONFIRMED' } = req.body
 
     const existingOrder = orderId
       ? await prisma.order.findUnique({ where: { orderId }, include: { items: true } })
@@ -94,6 +145,8 @@ app.post('/api/db/orders', async (req, res) => {
         currency,
         status,
         paymentId,
+        paymentMethod,
+        paymentStatus,
         items: {
           create: (items || []).map((item) => ({
             title: item.title,
@@ -205,6 +258,8 @@ app.post('/api/payments/verify', async (req, res) => {
             customer: customer || {},
             amount: Number(amount) || 0,
             status: 'PAID',
+            paymentMethod: 'RAZORPAY',
+            paymentStatus: 'SUCCESS',
             items: {
               create: (items || []).map((item) => ({
                 title: item.title,

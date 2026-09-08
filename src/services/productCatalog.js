@@ -1,5 +1,5 @@
 import fallbackProducts from '../data/products.json'
-import { getProducts, saveProduct } from './api'
+import { getProducts, saveProduct, uploadProductImage } from './api'
 
 const STORAGE_KEY = 'bun_maska_product_catalog'
 
@@ -80,4 +80,8 @@ export async function updateCatalogProduct(product) {
   const latestStored = getStoredProducts().filter((item) => item.slug !== saved.slug)
   storeProducts([...latestStored, { ...normalized, ...saved }])
   return mergeCatalogProducts([{ ...normalized, ...saved }]).find((item) => item.slug === product.slug)
+}
+
+export async function uploadCatalogProductImage(slug, file) {
+  return uploadProductImage(slug, file)
 }

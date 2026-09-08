@@ -11,7 +11,7 @@ const getCredentials = () => ({
 
 const getSupabaseConfig = () => ({
   url: process.env.SUPABASE_URL,
-  key: process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY,
+  key: process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY,
 })
 
 async function supabaseRequest(path, options = {}) {
@@ -76,8 +76,40 @@ async function saveProduct(slug, body) {
   return { status: result.status, body: Array.isArray(result.body) ? result.body[0] : result.body }
 }
 
+const PRODUCT_IMAGE_BUCKET = 'product-images'
+
+async function uploadProductImage(slug, dataUrl, contentType = 'image/jpeg') {
+  const { url, key } = getSupabaseConfig()
+  if (!url || !(process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY)) {
+    return { status: 503, body: { error: 'Supabase Storage is not configured on the server.' } }
+  }
+  if (!slug || !dataUrl || !String(dataUrl).startsWith('data:image/')) {
+    return { status: 400, body: { error: 'A product slug and image file are required.' } }
+  }
+
+  const [, base64] = String(dataUrl).split(',', 2)
+  const file = Buffer.from(base64 || '', 'base64')
+  if (!file.length || file.length > 2 * 1024 * 1024) return { status: 400, body: { error: 'Image must be 2 MB or smaller.' } }
+
+  const extension = contentType === 'image/png' ? 'png' : contentType === 'image/webp' ? 'webp' : contentType === 'image/gif' ? 'gif' : 'jpg'
+  const objectPath = `products/${slug.replace(/[^a-z0-9-]/gi, '-')}-${Date.now()}.${extension}`
+  const headers = { apikey: key, Authorization: `Bearer ${key}` }
+  await fetch(`${url}/storage/v1/bucket`, {
+    method: 'POST',
+    headers: { ...headers, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: PRODUCT_IMAGE_BUCKET, name: PRODUCT_IMAGE_BUCKET, public: true }),
+  })
+  const response = await fetch(`${url}/storage/v1/object/${PRODUCT_IMAGE_BUCKET}/${objectPath}`, {
+    method: 'POST',
+    headers: { ...headers, 'Content-Type': contentType, 'x-upsert': 'false' },
+    body: file,
+  })
+  if (!response.ok) return { status: response.status, body: { error: await response.text() || 'Storage upload failed.' } }
+  return { status: 201, body: { imageUrl: `${url}/storage/v1/object/public/${PRODUCT_IMAGE_BUCKET}/${objectPath}` } }
+}
+
 async function saveOrder(body) {
-  const { orderId, customer, amount, currency = 'INR', items = [], paymentId, status = 'CONFIRMED' } = body
+  const { orderId, customer, amount, currency = 'INR', items = [], paymentId, paymentMethod, paymentStatus, status = 'CONFIRMED' } = body
   if (orderId) {
     const existingResult = await supabaseRequest(`orders?orderId=eq.${encodeURIComponent(orderId)}&select=*`)
     if (existingResult.status < 400 && existingResult.body?.length) {
@@ -94,6 +126,8 @@ async function saveOrder(body) {
       amount: Number(amount),
       currency,
       paymentId,
+      paymentMethod,
+      paymentStatus,
       status,
     }),
   })
@@ -178,6 +212,8 @@ async function verifyPayment(body) {
     amount,
     currency: 'INR',
     status: 'PAID',
+    paymentMethod: 'RAZORPAY',
+    paymentStatus: 'SUCCESS',
   })
 
   if (savedOrder.status >= 400) {
@@ -208,6 +244,8 @@ export default async function handler(req, res) {
     const productSlug = route.match(/\/db\/products\/([^/]+)$/)?.[1]
     const result = route.endsWith('/db/products') && req.method === 'GET'
       ? await getProducts()
+      : route.endsWith('/db/product-images') && req.method === 'POST'
+        ? await uploadProductImage(req.body?.slug, req.body?.image, req.body?.contentType)
       : productSlug && req.method === 'PUT'
         ? await saveProduct(decodeURIComponent(productSlug), req.body || {})
       : route.endsWith('/db/orders') && req.method === 'GET'

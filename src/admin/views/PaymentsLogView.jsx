@@ -1,22 +1,23 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 export default function PaymentsLogView({ orders, onSelectOrder }) {
   const [methodFilter, setMethodFilter] = useState('ALL');
 
   // Compute revenue metrics
-  const totalRevenue = orders.reduce((sum, o) => sum + (parseFloat(o.totalAmount || o.total) || 0), 0);
+  const orderAmount = (order) => Number(order.amount ?? order.totalAmount ?? order.total ?? 0) || 0;
+  const totalRevenue = orders.reduce((sum, order) => sum + orderAmount(order), 0);
   
   const razorpayOrders = orders.filter(o => 
     (o.paymentMethod || o.payment_method || '').toUpperCase() === 'RAZORPAY' ||
     o.paymentStatus === 'SUCCESS' || o.payment_status === 'SUCCESS'
   );
-  const razorpayTotal = razorpayOrders.reduce((sum, o) => sum + (parseFloat(o.totalAmount || o.total) || 0), 0);
+  const razorpayTotal = razorpayOrders.reduce((sum, order) => sum + orderAmount(order), 0);
 
   const codOrders = orders.filter(o => 
     (o.paymentMethod || o.payment_method || 'COD').toUpperCase() === 'COD' &&
     o.paymentStatus !== 'SUCCESS' && o.payment_status !== 'SUCCESS'
   );
-  const codTotal = codOrders.reduce((sum, o) => sum + (parseFloat(o.totalAmount || o.total) || 0), 0);
+  const codTotal = codOrders.reduce((sum, order) => sum + orderAmount(order), 0);
 
   const avgOrderValue = orders.length > 0 ? Math.round(totalRevenue / orders.length) : 0;
 

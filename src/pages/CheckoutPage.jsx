@@ -58,9 +58,11 @@ export default function CheckoutPage() {
   }
 
   // Create Order using API Service
-  const completeOrder = async (message, orderId) => {
+  const completeOrder = async (message, orderId, payment = {}) => {
     const customer = { ...form, email: user?.email || form.email || '' }
-    if (paymentMethod === 'cod') {
+    // Razorpay verification stores live payments itself. COD and demo payments
+    // are saved here with explicit payment metadata for the admin desk.
+    if (paymentMethod === 'cod' || payment.isDemo) {
       try {
         await createOrder({
           orderId: orderId || `BM-${Date.now()}`,
@@ -68,7 +70,10 @@ export default function CheckoutPage() {
           amount: total,
           currency: 'INR',
           items,
-          status: 'CONFIRMED',
+          paymentId: payment.paymentId,
+          paymentMethod: paymentMethod === 'cod' ? 'COD' : 'RAZORPAY',
+          paymentStatus: paymentMethod === 'cod' ? 'PENDING' : 'SUCCESS',
+          status: paymentMethod === 'cod' ? 'CONFIRMED' : 'PAID',
         })
       } catch (e) {
         console.warn('createOrder API save warning:', e.message)
@@ -178,7 +183,7 @@ export default function CheckoutPage() {
         </section>
         <aside className="rounded-[2rem] bg-slate-900 p-6 text-white shadow-xl shadow-slate-300 md:p-8"><h2 className="text-2xl font-black">Order summary</h2><div className="mt-6 space-y-4">{items.map((item) => <div key={item.key} className="flex items-center justify-between gap-4 text-sm text-slate-300"><span>{item.title} ({item.sizeLabel}) x{item.quantity}</span><span>{formatPrice(item.price * item.quantity)}</span></div>)}</div><div className="mt-6 space-y-3 border-t border-slate-700 pt-5 text-sm text-slate-300"><div className="flex justify-between"><span>Subtotal</span><span>{formatPrice(subtotal)}</span></div><div className="flex justify-between"><span>Delivery</span><span>{formatPrice(delivery)}</span></div><div className="flex justify-between"><span>Tax</span><span>{formatPrice(tax)}</span></div></div><div className="mt-6 flex items-center justify-between border-y border-slate-700 py-4"><span className="text-lg font-bold">Total</span><span className="text-2xl font-black text-orange-300">{formatPrice(total)}</span></div><button disabled={processing} type="submit" className="mt-8 w-full rounded-full bg-orange-500 px-6 py-4 text-base font-bold text-white transition hover:bg-orange-600 disabled:cursor-wait disabled:opacity-60">{processing ? 'Connecting to Razorpay...' : paymentMethod === 'cod' ? 'Confirm cash order' : `Pay ${formatPrice(total)} securely`}</button><p className="mt-4 text-center text-xs text-slate-400">{paymentMethod === 'cod' ? 'Payment is collected at delivery.' : 'Online payments are handled securely by Razorpay.'}</p></aside>
       </form>
-      {demoPaymentOpen ? <DemoPaymentModal amount={total} onClose={() => setDemoPaymentOpen(false)} onSuccess={(orderId) => { setDemoPaymentOpen(false); completeOrder('Your demo online payment was successful and your order is being prepared.', orderId) }} onFailure={(message) => { setDemoPaymentOpen(false); failPayment(message) }} /> : null}
+      {demoPaymentOpen ? <DemoPaymentModal amount={total} onClose={() => setDemoPaymentOpen(false)} onSuccess={(orderId) => { setDemoPaymentOpen(false); completeOrder('Your demo online payment was successful and your order is being prepared.', orderId, { isDemo: true, paymentId: orderId }) }} onFailure={(message) => { setDemoPaymentOpen(false); failPayment(message) }} /> : null}
     </>
   )
 }

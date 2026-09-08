@@ -59,9 +59,33 @@ export async function saveProduct(product) {
   return response.json()
 }
 
+/** Upload a product image and receive its permanent public URL. */
+export async function uploadProductImage(slug, file) {
+  if (!file?.type?.startsWith('image/')) throw new Error('Please select an image file.')
+  if (file.size > 2 * 1024 * 1024) throw new Error('Image must be 2 MB or smaller.')
+
+  const image = await new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result)
+    reader.onerror = () => reject(new Error('Unable to read the image.'))
+    reader.readAsDataURL(file)
+  })
+  const response = await fetch(`${API_BASE_URL}/api/db/product-images`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ slug, image, contentType: file.type }),
+  })
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}))
+    throw new Error(error.error || 'Unable to upload image.')
+  }
+  return response.json()
+}
+
 export default {
   createOrder,
   getOrders,
   getProducts,
   saveProduct,
+  uploadProductImage,
 }

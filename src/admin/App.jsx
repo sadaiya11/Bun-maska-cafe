@@ -80,7 +80,16 @@ export default function App() {
 
   // Calculate stats
   const activeOrdersCount = orders.filter(o => o.status === 'PENDING' || o.status === 'PREPARING' || o.status === 'OUT_FOR_DELIVERY').length;
-  const totalRevenue = orders.reduce((sum, o) => sum + (parseFloat(o.totalAmount || o.total) || 0), 0);
+  const today = new Date();
+  const totalRevenue = orders
+    .filter((order) => {
+      const placedAt = new Date(order.createdAt || order.orderDate || 0);
+      return order.status !== 'CANCELLED'
+        && placedAt.getFullYear() === today.getFullYear()
+        && placedAt.getMonth() === today.getMonth()
+        && placedAt.getDate() === today.getDate();
+    })
+    .reduce((sum, order) => sum + (Number(order.amount ?? order.totalAmount ?? order.total ?? 0) || 0), 0);
 
   return (
     <div className="min-h-screen bg-[#090d16] text-slate-100 font-sans flex flex-col antialiased selection:bg-amber-500 selection:text-slate-950">

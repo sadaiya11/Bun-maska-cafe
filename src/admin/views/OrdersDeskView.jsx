@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 export default function OrdersDeskView({ 
   orders, 
@@ -29,10 +29,11 @@ export default function OrdersDeskView({
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       const orderIdStr = String(order.id || order.orderId || '').toLowerCase();
-      const custName = String(order.customerName || order.customer_name || '').toLowerCase();
-      const phone = String(order.phone || '').toLowerCase();
-      const address = String(order.address || '').toLowerCase();
-      const city = String(order.city || '').toLowerCase();
+      const customer = order.customer || {};
+      const custName = String(order.customerName || order.customer_name || customer.name || '').toLowerCase();
+      const phone = String(order.phone || customer.phone || '').toLowerCase();
+      const address = String(order.address || customer.address || '').toLowerCase();
+      const city = String(order.city || customer.city || '').toLowerCase();
 
       return (
         orderIdStr.includes(term) ||
@@ -88,7 +89,7 @@ export default function OrdersDeskView({
   };
 
   const getPaymentBadge = (order) => {
-    const isPaid = order.paymentStatus === 'SUCCESS' || order.payment_status === 'SUCCESS';
+    const isPaid = order.paymentStatus === 'SUCCESS' || order.payment_status === 'SUCCESS' || Boolean(order.paymentId) || order.status === 'PAID';
     const method = (order.paymentMethod || order.payment_method || 'COD').toUpperCase();
 
     if (method === 'RAZORPAY' || isPaid) {
@@ -172,7 +173,9 @@ export default function OrdersDeskView({
               </thead>
               <tbody className="divide-y divide-slate-800/60 text-slate-300">
                 {filteredOrders.map((order) => {
-                  const itemsList = Array.isArray(order.items) ? order.items : [];
+                  const itemsList = Array.isArray(order.items) ? order.items : Array.isArray(order.order_items) ? order.order_items : [];
+                  const customer = order.customer || {};
+                  const orderAmount = Number(order.amount ?? order.totalAmount ?? order.total ?? 0);
                   const currentStatus = order.status || 'PENDING';
 
                   return (
@@ -193,13 +196,13 @@ export default function OrdersDeskView({
                       {/* Customer Details */}
                       <td className="py-4 px-4 align-top">
                         <div className="font-semibold text-white">
-                          {order.customerName || order.customer_name || 'Guest Customer'}
+                          {order.customerName || order.customer_name || customer.name || 'Guest Customer'}
                         </div>
                         <div className="text-xs text-slate-400 mt-0.5">
-                          📞 {order.phone || 'N/A'}
+                          📞 {order.phone || customer.phone || 'N/A'}
                         </div>
-                        <div className="text-xs text-slate-500 line-clamp-1 mt-0.5 max-w-[200px]" title={order.address}>
-                          📍 {order.address || 'Address on file'}
+                        <div className="text-xs text-slate-500 line-clamp-1 mt-0.5 max-w-[200px]" title={order.address || customer.address}>
+                          📍 {order.address || customer.address || 'Address on file'}
                         </div>
                       </td>
 
@@ -209,7 +212,7 @@ export default function OrdersDeskView({
                           {itemsList.slice(0, 2).map((item, idx) => (
                             <div key={idx} className="text-xs flex items-center space-x-1.5">
                               <span className="font-bold text-amber-400">{item.quantity || 1}x</span>
-                              <span className="text-slate-200 line-clamp-1">{item.name || item.title || 'Item'}</span>
+                              <span className="max-w-[260px] whitespace-normal break-words text-slate-200">{item.name || item.title || 'Item'}</span>
                             </div>
                           ))}
                           {itemsList.length > 2 && (
@@ -223,7 +226,7 @@ export default function OrdersDeskView({
                       {/* Amount & Payment */}
                       <td className="py-4 px-4 align-top">
                         <div className="font-black text-white text-base">
-                          ₹{order.totalAmount || order.total || 0}
+                          ₹{orderAmount.toFixed(2)}
                         </div>
                         <div className="mt-1">
                           {getPaymentBadge(order)}

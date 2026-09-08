@@ -61,7 +61,7 @@ export default function OrderDetailModal({ order, onClose, onUpdateStatus }) {
               )}
               <div className="flex justify-between pt-1">
                 <span className="text-slate-400">Total Amount Paid:</span>
-                <span className="text-lg font-black text-orange-400">₹{Number(order.amount || 0).toFixed(2)} {order.currency || 'INR'}</span>
+                <span className="text-lg font-black text-orange-400">₹{Number(order.amount ?? order.totalAmount ?? order.total ?? 0).toFixed(2)} {order.currency || 'INR'}</span>
               </div>
             </div>
           </div>
@@ -110,7 +110,7 @@ export default function OrderDetailModal({ order, onClose, onUpdateStatus }) {
               <tbody className="divide-y divide-slate-800/60">
                 {items.map((item, idx) => (
                   <tr key={idx} className="hover:bg-slate-800/30">
-                    <td className="px-4 py-3 font-semibold text-white">{item.title}</td>
+                    <td className="px-4 py-3 font-semibold text-white">{item.title || item.name || 'Item'}</td>
                     <td className="px-4 py-3 text-xs text-slate-400">{item.size || item.sizeLabel || 'Standard'}</td>
                     <td className="px-4 py-3 text-center font-bold text-orange-400">{item.quantity}</td>
                     <td className="px-4 py-3 text-right font-bold text-white">₹{(item.price * item.quantity).toFixed(2)}</td>
