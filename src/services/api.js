@@ -35,18 +35,33 @@ export async function getOrders(userEmail = '') {
  * 3. Get Products from Supabase Database via API
  */
 export async function getProducts() {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/db/products`)
-    if (!response.ok) return []
-    return await response.json()
-  } catch (error) {
-    console.warn('API getProducts error:', error.message)
-    return []
+  const response = await fetch(`${API_BASE_URL}/api/db/products`)
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}))
+    throw new Error(error.error || 'Unable to fetch products.')
   }
+  return response.json()
+}
+
+/** Save a menu item so changes are shared with the customer storefront. */
+export async function saveProduct(product) {
+  const response = await fetch(`${API_BASE_URL}/api/db/products/${encodeURIComponent(product.slug)}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(product),
+  })
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}))
+    throw new Error(error.error || 'Unable to save product.')
+  }
+
+  return response.json()
 }
 
 export default {
   createOrder,
   getOrders,
   getProducts,
+  saveProduct,
 }

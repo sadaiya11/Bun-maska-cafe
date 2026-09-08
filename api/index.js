@@ -58,6 +58,24 @@ async function getOrders(query) {
   return result
 }
 
+async function getProducts() {
+  return supabaseRequest('products?select=*&order=createdAt.asc')
+}
+
+async function saveProduct(slug, body) {
+  const { title, category, tag, description, price, image, variants, inStock } = body
+  if (!slug || !title || !category || !description || !Number.isFinite(Number(price))) {
+    return { status: 400, body: { error: 'Slug, title, category, description, and a valid price are required.' } }
+  }
+
+  const result = await supabaseRequest('products?on_conflict=slug', {
+    method: 'POST',
+    headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
+    body: JSON.stringify({ slug, title, category, tag, description, price: Number(price), image: image || '', variants, inStock: inStock !== false }),
+  })
+  return { status: result.status, body: Array.isArray(result.body) ? result.body[0] : result.body }
+}
+
 async function saveOrder(body) {
   const { orderId, customer, amount, currency = 'INR', items = [], paymentId, status = 'CONFIRMED' } = body
   if (orderId) {
@@ -180,14 +198,19 @@ async function verifyPayment(body) {
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS')
 
   if (req.method === 'OPTIONS') return res.status(204).end()
 
   try {
     const requestUrl = new URL(req.url || '/', `https://${req.headers.host || 'localhost'}`)
     const route = requestUrl.pathname
-    const result = route.endsWith('/db/orders') && req.method === 'GET'
+    const productSlug = route.match(/\/db\/products\/([^/]+)$/)?.[1]
+    const result = route.endsWith('/db/products') && req.method === 'GET'
+      ? await getProducts()
+      : productSlug && req.method === 'PUT'
+        ? await saveProduct(decodeURIComponent(productSlug), req.body || {})
+      : route.endsWith('/db/orders') && req.method === 'GET'
       ? await getOrders(requestUrl.searchParams)
       : route.endsWith('/db/orders') && req.method === 'POST'
         ? await saveOrder(req.body || {})

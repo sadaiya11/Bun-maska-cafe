@@ -54,6 +54,26 @@ app.get('/api/db/products', async (req, res) => {
   }
 })
 
+// Route: PUT /api/db/products/:slug - Update the fields shown to customers.
+app.put('/api/db/products/:slug', async (req, res) => {
+  try {
+    const slug = req.params.slug
+    const { title, category, tag, description, price, image, variants, inStock } = req.body
+    if (!slug || !title || !description || !category || !Number.isFinite(Number(price))) {
+      return res.status(400).json({ error: 'Slug, title, category, description, and a valid price are required.' })
+    }
+
+    const product = await prisma.product.upsert({
+      where: { slug },
+      update: { title, category, tag, description, price: Number(price), image: image || '', variants, inStock: inStock !== false },
+      create: { slug, title, category, tag, description, price: Number(price), image: image || '', variants, inStock: inStock !== false },
+    })
+    res.json(product)
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to save product', details: error.message })
+  }
+})
+
 // Route: POST /api/db/orders - Save Order into Supabase DB via Prisma
 app.post('/api/db/orders', async (req, res) => {
   try {

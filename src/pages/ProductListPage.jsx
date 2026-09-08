@@ -1,14 +1,18 @@
+import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import SectionHeader from '../components/SectionHeader'
 import SEO from '../components/SEO'
-import products from '../data/products.json'
+import { getLocalCatalog, loadCatalog } from '../services/productCatalog'
 
 const formatPrice = (price) => `₹${Number(price).toFixed(2)}`
 
 export default function ProductListPage() {
   const [searchParams] = useSearchParams()
+  const [products, setProducts] = useState(getLocalCatalog)
   const category = searchParams.get('category')
-  const visibleProducts = category ? products.filter((product) => product.category === category) : products
+  useEffect(() => { loadCatalog().then(setProducts) }, [])
+  const availableProducts = products.filter((product) => product.inStock !== false)
+  const visibleProducts = category ? availableProducts.filter((product) => product.category === category) : availableProducts
 
   const pageTitle = category ? `${category} Menu | Bun Maska Café` : 'Café Menu & Fresh Dishes | Bun Maska Café'
   const pageDescription = category

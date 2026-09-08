@@ -1,15 +1,17 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import ProductGallery from '../components/ProductGallery'
 import QuantitySelector from '../components/QuantitySelector'
 import SEO from '../components/SEO'
-import products from '../data/products.json'
+import { getLocalCatalog, loadCatalog } from '../services/productCatalog'
 import { useCart } from '../context/useCart'
 
 const formatPrice = (price) => `₹${Number(price).toFixed(2)}`
 
 export default function ProductDetailPage() {
   const { slug } = useParams()
+  const [products, setProducts] = useState(getLocalCatalog)
+  useEffect(() => { loadCatalog().then(setProducts) }, [])
   const product = products.find((item) => item.slug === slug)
   const navigate = useNavigate()
   const { addItem } = useCart()
@@ -23,13 +25,23 @@ export default function ProductDetailPage() {
 
   const selectedVariant = product?.variants?.find((variant) => variant.size === selectedSize) ?? initialVariant
 
-  const relatedProducts = products.filter((item) => item.slug !== product?.slug).slice(0, 3)
+  const relatedProducts = products.filter((item) => item.slug !== product?.slug && item.inStock !== false).slice(0, 3)
 
   if (!product) {
     return (
       <div className="rounded-[2rem] bg-white p-10 text-center">
         <SEO title="Product Not Found | Bun Maska Café" noindex={true} />
         <h1 className="text-3xl font-black">Product not found</h1>
+        <Link to="/product" className="mt-5 inline-block rounded-full bg-orange-500 px-6 py-3 font-bold text-white">Back to products</Link>
+      </div>
+    )
+  }
+
+  if (product.inStock === false) {
+    return (
+      <div className="rounded-[2rem] bg-white p-10 text-center">
+        <h1 className="text-3xl font-black">Currently unavailable</h1>
+        <p className="mt-3 text-slate-600">This item is temporarily out of stock. Please choose another item from our menu.</p>
         <Link to="/product" className="mt-5 inline-block rounded-full bg-orange-500 px-6 py-3 font-bold text-white">Back to products</Link>
       </div>
     )

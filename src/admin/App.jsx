@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import AdminHeader from './components/AdminHeader';
 import AdminSidebar from './components/AdminSidebar';
 import OrdersDeskView from './views/OrdersDeskView';
@@ -8,7 +8,7 @@ import OrderDetailModal from './components/OrderDetailModal';
 import OrderNotificationToast from './components/OrderNotificationToast';
 import { fetchAdminOrders, updateOrderStatus } from './services/adminApi';
 import { playNewOrderChime } from './services/soundAlert';
-import initialProducts from './data/products.json';
+import { getLocalCatalog } from '../services/productCatalog';
 
 export default function App() {
   const [orders, setOrders] = useState([]);
@@ -20,6 +20,8 @@ export default function App() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [newOrderToast, setNewOrderToast] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [productsCount, setProductsCount] = useState(() => getLocalCatalog().length);
+  const handleProductsChange = useCallback((products) => setProductsCount(products.length), []);
 
   const prevOrdersCountRef = useRef(0);
   const isFirstLoadRef = useRef(true);
@@ -113,7 +115,7 @@ export default function App() {
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           ordersCount={orders.length}
-          productsCount={initialProducts.length}
+          productsCount={productsCount}
           totalRevenue={totalRevenue}
         />
 
@@ -129,7 +131,7 @@ export default function App() {
           )}
 
           {activeTab === 'products' && (
-            <ProductsCatalogView />
+            <ProductsCatalogView onProductsChange={handleProductsChange} />
           )}
 
           {activeTab === 'payments' && (
