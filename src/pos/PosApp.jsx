@@ -17,6 +17,9 @@ export default function PosApp() {
   const [customerPhone, setCustomerPhone] = useState('');
   const [discountAmount, setDiscountAmount] = useState('0');
 
+  // Mobile tab state: 'menu' or 'ticket'
+  const [mobileTab, setMobileTab] = useState('menu');
+
   const [checkoutTotals, setCheckoutTotals] = useState(null);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [completedOrder, setCompletedOrder] = useState(null);
@@ -137,45 +140,121 @@ export default function PosApp() {
     setDiscountAmount('0');
     setCustomerName('');
     setCustomerPhone('');
+    setMobileTab('menu');
   };
+
+  const totalCartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const totalSubtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
   return (
     <div className="h-screen bg-[#090d16] text-slate-100 font-sans flex flex-col overflow-hidden select-none">
       
       {/* Header */}
       <PosHeader 
-        cartCount={cartItems.reduce((sum, item) => sum + item.quantity, 0)}
+        cartCount={totalCartCount}
         onOpenShiftSummary={() => setShowShiftSummaryModal(true)}
         onResetCart={handleClearCart}
       />
 
-      {/* Workspace Body */}
-      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-        
-        {/* Menu Grid (Left Side) */}
-        <PosMenuGrid 
-          products={products}
-          onAddToCart={handleAddToCart}
-        />
+      {/* Mobile Tab View Selector (< lg) */}
+      <div className="flex lg:hidden bg-slate-950 border-b border-slate-800 p-1 shrink-0">
+        <button
+          onClick={() => setMobileTab('menu')}
+          className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5 ${
+            mobileTab === 'menu'
+              ? 'bg-amber-500 text-slate-950 shadow-md font-black'
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <span>🍔</span>
+          <span>Food Menu</span>
+        </button>
 
-        {/* Active Ticket Cart Panel (Right Side) */}
-        <PosCartPanel 
-          cartItems={cartItems}
-          onUpdateQuantity={handleUpdateQuantity}
-          onRemoveItem={handleRemoveItem}
-          onClearCart={handleClearCart}
-          orderType={orderType}
-          setOrderType={setOrderType}
-          tableNumber={tableNumber}
-          setTableNumber={setTableNumber}
-          customerName={customerName}
-          setCustomerName={setCustomerName}
-          customerPhone={customerPhone}
-          setCustomerPhone={setCustomerPhone}
-          discountAmount={discountAmount}
-          setDiscountAmount={setDiscountAmount}
-          onProceedToCheckout={handleProceedToCheckout}
-        />
+        <button
+          onClick={() => setMobileTab('ticket')}
+          className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5 relative ${
+            mobileTab === 'ticket'
+              ? 'bg-amber-500 text-slate-950 shadow-md font-black'
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <span>🎟️</span>
+          <span>Ticket</span>
+          {totalCartCount > 0 && (
+            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
+              mobileTab === 'ticket' ? 'bg-slate-950 text-amber-400' : 'bg-amber-500 text-slate-950'
+            }`}>
+              {totalCartCount}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {/* Workspace Body */}
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+        
+        {/* Menu Grid (Show always on Desktop, or when mobileTab === 'menu' on Mobile) */}
+        <div className={`flex-1 flex flex-col overflow-hidden ${mobileTab === 'menu' ? 'flex' : 'hidden lg:flex'}`}>
+          <PosMenuGrid 
+            products={products}
+            onAddToCart={handleAddToCart}
+          />
+
+          {/* Floating Mobile Cart Bar (When on Menu tab and items exist) */}
+          {totalCartCount > 0 && (
+            <div className="lg:hidden p-3 bg-slate-950/90 border-t border-slate-800 shrink-0">
+              <button
+                onClick={() => setMobileTab('ticket')}
+                className="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-400 text-slate-950 font-black rounded-xl text-xs flex items-center justify-between px-4 shadow-lg active:scale-95"
+              >
+                <div className="flex items-center space-x-2">
+                  <span className="w-5 h-5 rounded-full bg-slate-950 text-amber-400 text-[10px] flex items-center justify-center font-bold">
+                    {totalCartCount}
+                  </span>
+                  <span>View Current Ticket</span>
+                </div>
+                <div className="flex items-center space-x-1 font-mono font-extrabold text-sm">
+                  <span>₹{totalSubtotal}</span>
+                  <span>➔</span>
+                </div>
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Active Ticket Cart Panel (Show always on Desktop, or when mobileTab === 'ticket' on Mobile) */}
+        <div className={`w-full lg:w-[380px] xl:w-[420px] flex flex-col overflow-hidden ${mobileTab === 'ticket' ? 'flex' : 'hidden lg:flex'}`}>
+          
+          {/* Mobile Back Button */}
+          <div className="lg:hidden px-4 py-2 bg-slate-950 border-b border-slate-800 flex items-center justify-between shrink-0">
+            <button
+              onClick={() => setMobileTab('menu')}
+              className="text-xs font-bold text-amber-400 flex items-center space-x-1"
+            >
+              <span>← Back to Menu</span>
+            </button>
+            <span className="text-[11px] text-slate-400 font-mono">
+              Total: <strong className="text-white">₹{totalSubtotal}</strong>
+            </span>
+          </div>
+
+          <PosCartPanel 
+            cartItems={cartItems}
+            onUpdateQuantity={handleUpdateQuantity}
+            onRemoveItem={handleRemoveItem}
+            orderType={orderType}
+            setOrderType={setOrderType}
+            tableNumber={tableNumber}
+            setTableNumber={setTableNumber}
+            customerName={customerName}
+            setCustomerName={setCustomerName}
+            customerPhone={customerPhone}
+            setCustomerPhone={setCustomerPhone}
+            discountAmount={discountAmount}
+            setDiscountAmount={setDiscountAmount}
+            onProceedToCheckout={handleProceedToCheckout}
+          />
+        </div>
 
       </div>
 

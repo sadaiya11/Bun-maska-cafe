@@ -33,7 +33,7 @@ export default function PosCartPanel({
   const finalTotal = Math.round(taxableAmount + gstTax);
 
   return (
-    <div className="w-full lg:w-[380px] xl:w-[420px] bg-slate-900 border-l border-slate-800 flex flex-col justify-between shrink-0 shadow-2xl">
+    <div className="w-full h-full bg-slate-900 flex flex-col justify-between shrink-0 overflow-hidden shadow-2xl">
       
       {/* Top Header & Ticket Info */}
       <div className="p-4 border-b border-slate-800 space-y-3">
