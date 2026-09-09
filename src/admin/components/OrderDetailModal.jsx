@@ -123,12 +123,12 @@ export default function OrderDetailModal({ order, onClose, onUpdateStatus }) {
         <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-slate-800 pt-5">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs font-bold text-slate-400">Update Status:</span>
-            {['PREPARING', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED'].map((st) => (
+            {['PENDING', 'PREPARING', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED'].map((st) => (
               <button
                 key={st}
                 type="button"
                 onClick={() => {
-                  onUpdateStatus(orderId, st)
+                  onUpdateStatus(order, st)
                   onClose()
                 }}
                 className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${

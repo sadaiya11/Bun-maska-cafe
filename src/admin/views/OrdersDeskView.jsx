@@ -243,7 +243,7 @@ export default function OrdersDeskView({
                         <div className="mt-2">
                           <select
                             value={currentStatus}
-                            onChange={(e) => onUpdateStatus(order.id || order.orderId, e.target.value)}
+                            onChange={(e) => onUpdateStatus(order, e.target.value)}
                             className="bg-slate-950 border border-slate-700 rounded-lg text-xs text-slate-300 py-1 px-2 focus:outline-none focus:border-amber-500"
                           >
                             <option value="PENDING">Set: PENDING</option>

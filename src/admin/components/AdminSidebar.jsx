@@ -30,6 +30,27 @@ export default function AdminSidebar({
       icon: '💳',
       badge: null,
       desc: 'Razorpay & COD transactions'
+    },
+    {
+      id: 'analytics',
+      label: 'Sales Analytics',
+      icon: '📊',
+      badge: null,
+      desc: 'Charts & revenue trends'
+    },
+    {
+      id: 'coupons',
+      label: 'Coupons & Promos',
+      icon: '🎟️',
+      badge: null,
+      desc: 'Manage discount codes'
+    },
+    {
+      id: 'inventory',
+      label: 'Raw Inventory',
+      icon: '🧈',
+      badge: null,
+      desc: 'Stock alerts & materials'
     }
   ];
 

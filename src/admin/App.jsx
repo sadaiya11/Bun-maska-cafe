@@ -4,6 +4,9 @@ import AdminSidebar from './components/AdminSidebar';
 import OrdersDeskView from './views/OrdersDeskView';
 import ProductsCatalogView from './views/ProductsCatalogView';
 import PaymentsLogView from './views/PaymentsLogView';
+import AnalyticsDashboardView from './views/AnalyticsDashboardView';
+import CouponsManagerView from './views/CouponsManagerView';
+import InventoryManagerView from './views/InventoryManagerView';
 import OrderDetailModal from './components/OrderDetailModal';
 import OrderNotificationToast from './components/OrderNotificationToast';
 import { fetchAdminOrders, updateOrderStatus } from './services/adminApi';
@@ -46,17 +49,14 @@ export default function App() {
     isFirstLoadRef.current = false;
   }, [soundEnabled]);
 
-  // Initial load and 5-second polling interval
+  // Initial load and 1-minute polling interval
   useEffect(() => {
-    const initialLoad = setTimeout(() => loadOrders(), 0);
+    loadOrders();
     const interval = setInterval(() => {
       loadOrders();
-    }, 5000); // Poll every 5s for live customer orders
+    }, 60000); // Poll every 1 minute for live customer orders
 
-    return () => {
-      clearTimeout(initialLoad);
-      clearInterval(interval);
-    };
+    return () => clearInterval(interval);
   }, [loadOrders]);
 
   // Save sound setting
@@ -71,11 +71,23 @@ export default function App() {
   };
 
   // Status Change Handler
-  const handleUpdateStatus = async (orderId, newStatus) => {
-    const success = await updateOrderStatus(orderId, newStatus);
+  const handleUpdateStatus = async (orderOrId, newStatus) => {
+    let primaryId = orderOrId;
+    let altId = null;
+
+    if (typeof orderOrId === 'object' && orderOrId !== null) {
+      primaryId = orderOrId.orderId || orderOrId.id;
+      altId = orderOrId.id || orderOrId.orderId;
+    }
+
+    const success = await updateOrderStatus(primaryId, newStatus, altId);
     if (success) {
-      setOrders(prev => prev.map(o => (o.id === orderId || o.orderId === orderId) ? { ...o, status: newStatus } : o));
-      if (selectedOrder && (selectedOrder.id === orderId || selectedOrder.orderId === orderId)) {
+      const isMatch = (o) =>
+        (primaryId && (o.id === primaryId || o.orderId === primaryId || String(o.id) === String(primaryId) || String(o.orderId) === String(primaryId))) ||
+        (altId && (o.id === altId || o.orderId === altId || String(o.id) === String(altId) || String(o.orderId) === String(altId)));
+
+      setOrders(prev => prev.map(o => isMatch(o) ? { ...o, status: newStatus } : o));
+      if (selectedOrder && isMatch(selectedOrder)) {
         setSelectedOrder(prev => ({ ...prev, status: newStatus }));
       }
     }
@@ -83,16 +95,7 @@ export default function App() {
 
   // Calculate stats
   const activeOrdersCount = orders.filter(o => o.status === 'PENDING' || o.status === 'PREPARING' || o.status === 'OUT_FOR_DELIVERY').length;
-  const today = new Date();
-  const totalRevenue = orders
-    .filter((order) => {
-      const placedAt = new Date(order.createdAt || order.orderDate || 0);
-      return order.status !== 'CANCELLED'
-        && placedAt.getFullYear() === today.getFullYear()
-        && placedAt.getMonth() === today.getMonth()
-        && placedAt.getDate() === today.getDate();
-    })
-    .reduce((sum, order) => sum + (Number(order.amount ?? order.totalAmount ?? order.total ?? 0) || 0), 0);
+  const totalRevenue = orders.reduce((sum, o) => sum + (parseFloat(o.totalAmount || o.total || o.amount) || 0), 0);
 
   return (
     <div className="min-h-screen bg-[#090d16] text-slate-100 font-sans flex flex-col antialiased selection:bg-amber-500 selection:text-slate-950">
@@ -101,7 +104,7 @@ export default function App() {
       <OrderNotificationToast 
         order={newOrderToast} 
         onClose={() => setNewOrderToast(null)} 
-        onViewDetails={(order) => {
+        onViewOrder={(order) => {
           setSelectedOrder(order);
           setActiveTab('orders');
         }}
@@ -151,6 +154,18 @@ export default function App() {
               orders={orders}
               onSelectOrder={setSelectedOrder}
             />
+          )}
+
+          {activeTab === 'analytics' && (
+            <AnalyticsDashboardView orders={orders} />
+          )}
+
+          {activeTab === 'coupons' && (
+            <CouponsManagerView />
+          )}
+
+          {activeTab === 'inventory' && (
+            <InventoryManagerView />
           )}
         </main>
       </div>

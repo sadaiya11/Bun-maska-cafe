@@ -21,14 +21,46 @@ export async function createOrder(orderPayload) {
  */
 export async function getOrders(userEmail = '') {
   const query = userEmail ? `?email=${encodeURIComponent(userEmail)}` : ''
-  const response = await fetch(`${API_BASE_URL}/api/db/orders${query}`)
+  let orders = []
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.error || 'Unable to fetch orders.')
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/db/orders${query}`)
+    if (response.ok) {
+      orders = await response.json()
+    }
+  } catch (err) {
+    console.warn('API getOrders fallback to local storage:', err.message)
   }
 
-  return response.json()
+  let localOrders = []
+  try {
+    const data = localStorage.getItem('bun_maska_user_orders')
+    localOrders = data ? JSON.parse(data) : []
+  } catch {}
+
+  const apiOrderIds = new Set(orders.map((o) => o.orderId || o.id))
+  const uniqueLocal = localOrders.filter((o) => !apiOrderIds.has(o.orderId || o.id))
+  let combined = [...orders, ...uniqueLocal]
+
+  if (userEmail) {
+    combined = combined.filter((o) => {
+      const cust = o.customer || {}
+      return !cust.email || cust.email.toLowerCase() === userEmail.toLowerCase()
+    })
+  }
+
+  let statusOverrides = {}
+  try {
+    const data = localStorage.getItem('bun_maska_status_overrides')
+    statusOverrides = data ? JSON.parse(data) : {}
+  } catch {}
+
+  return combined.map((o) => {
+    const key1 = o.orderId ? String(o.orderId) : null
+    const key2 = o.id ? String(o.id) : null
+    const override = (key1 && statusOverrides[key1]) || (key2 && statusOverrides[key2])
+    return { ...o, status: override || o.status || 'PENDING' }
+  })
 }
 
 /**

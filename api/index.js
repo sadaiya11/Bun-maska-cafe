@@ -231,10 +231,33 @@ async function verifyPayment(body) {
   }
 }
 
+async function updateOrderStatusInDb(orderId, status) {
+  const allowedStatuses = ['PENDING', 'CONFIRMED', 'PREPARING', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED', 'PAID']
+  if (!allowedStatuses.includes(status)) {
+    return { status: 400, body: { error: 'Invalid order status.' } }
+  }
+
+  const result = await supabaseRequest(`orders?orderId=eq.${encodeURIComponent(orderId)}`, {
+    method: 'PATCH',
+    headers: { Prefer: 'return=representation' },
+    body: JSON.stringify({ status }),
+  })
+
+  if (result.status === 200 && Array.isArray(result.body) && result.body.length === 0) {
+    return supabaseRequest(`orders?id=eq.${encodeURIComponent(orderId)}`, {
+      method: 'PATCH',
+      headers: { Prefer: 'return=representation' },
+      body: JSON.stringify({ status }),
+    })
+  }
+
+  return result
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, OPTIONS')
 
   if (req.method === 'OPTIONS') return res.status(204).end()
 
@@ -242,12 +265,17 @@ export default async function handler(req, res) {
     const requestUrl = new URL(req.url || '/', `https://${req.headers.host || 'localhost'}`)
     const route = requestUrl.pathname
     const productSlug = route.match(/\/db\/products\/([^/]+)$/)?.[1]
+    const orderStatusMatch = route.match(/\/db\/orders\/([^/]+)\/status$/)
+    const orderStatusId = orderStatusMatch ? decodeURIComponent(orderStatusMatch[1]) : null
+
     const result = route.endsWith('/db/products') && req.method === 'GET'
       ? await getProducts()
       : route.endsWith('/db/product-images') && req.method === 'POST'
         ? await uploadProductImage(req.body?.slug, req.body?.image, req.body?.contentType)
       : productSlug && req.method === 'PUT'
         ? await saveProduct(decodeURIComponent(productSlug), req.body || {})
+      : orderStatusId && (req.method === 'PATCH' || req.method === 'PUT')
+        ? await updateOrderStatusInDb(orderStatusId, req.body?.status)
       : route.endsWith('/db/orders') && req.method === 'GET'
       ? await getOrders(requestUrl.searchParams)
       : route.endsWith('/db/orders') && req.method === 'POST'
