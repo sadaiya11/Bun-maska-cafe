@@ -1,19 +1,26 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import { logout } from '../store/authSlice'
+import { getStoreSettings } from '../services/storeSettingsService'
 
 export default function TopNavigation({ brand = 'Bun Maska Café', cartCount = 0 }) {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [storeSettings, setStoreSettings] = useState(getStoreSettings)
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const { isAuthenticated, user } = useSelector((state) => state.auth)
+
+  useEffect(() => {
+    const handleUpdate = () => setStoreSettings(getStoreSettings())
+    window.addEventListener('bun_store_settings_updated', handleUpdate)
+    return () => window.removeEventListener('bun_store_settings_updated', handleUpdate)
+  }, [])
 
   const items = [
     { label: 'Home', path: '/dashboard' },
     { label: 'Products', path: '/product' },
     { label: 'Cart', path: '/cart' },
-    // { label: 'Offers', path: '/offers' },
     ...(isAuthenticated
       ? [
         { label: 'Orders', path: '/orders' },
@@ -32,16 +39,25 @@ export default function TopNavigation({ brand = 'Bun Maska Café', cartCount = 0
     navigate('/dashboard')
   }
 
+  const isStoreOpen = storeSettings?.isStoreOpen !== false
+
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur-md">
+      {!isStoreOpen && (
+        <div className="bg-rose-600 text-white text-center py-2 px-4 text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2">
+          <span>🛑</span>
+          <span>{storeSettings?.storeClosedNotice || 'Our cafe is currently closed for online orders.'}</span>
+        </div>
+      )}
+
       <nav className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 md:px-8">
         <Link to="/dashboard" className="flex items-center gap-3 shrink-0" onClick={() => setMenuOpen(false)}>
           <div className="flex h-11 w-11 items-center justify-center rounded-full bg-orange-500 text-lg font-black text-white shadow-lg shadow-orange-200">
-            B
+            {storeSettings?.storeName?.charAt(0) || 'B'}
           </div>
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.32em] text-orange-500">Fresh taste</p>
-            <p className="text-lg font-black text-slate-900">{brand}</p>
+            <p className="text-lg font-black text-slate-900">{storeSettings?.storeName || brand}</p>
           </div>
         </Link>
 

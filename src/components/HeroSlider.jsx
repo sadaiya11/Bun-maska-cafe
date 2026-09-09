@@ -1,41 +1,40 @@
 import { useEffect, useState } from 'react'
-
-const slides = [
-  {
-    title: 'Fresh taste, made to order.',
-    subtitle: 'Chef-crafted wraps, biryanis, grills, and family combos served fresh every day.',
-    image:
-      'https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1500&q=80',
-    badge: 'Hot Picks',
-  },
-  {
-    title: 'Big flavors, amazing value.',
-    subtitle: 'Savor our signature deals, all-day combos, and comforting meals for every mood.',
-    image:
-      'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1500&q=80',
-    badge: 'Weekend Deal',
-  },
-  {
-    title: 'Your favorite cafe, delivered fast.',
-    subtitle: 'Order online for quick delivery, pickup, and a warm dine-in experience.',
-    image:
-      'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1500&q=80',
-    badge: 'Fast Delivery',
-  },
-]
+import { Link } from 'react-router-dom'
+import { getHeroSlides, getStoreSettings } from '../services/storeSettingsService'
 
 export default function HeroSlider() {
+  const [slides, setSlides] = useState(getHeroSlides)
+  const [storeSettings, setStoreSettings] = useState(getStoreSettings)
   const [activeSlide, setActiveSlide] = useState(0)
 
   useEffect(() => {
+    const handleUpdate = () => {
+      setSlides(getHeroSlides())
+      setStoreSettings(getStoreSettings())
+    }
+    window.addEventListener('bun_hero_slides_updated', handleUpdate)
+    window.addEventListener('bun_store_settings_updated', handleUpdate)
+    return () => {
+      window.removeEventListener('bun_hero_slides_updated', handleUpdate)
+      window.removeEventListener('bun_store_settings_updated', handleUpdate)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!slides.length) return
     const timer = setInterval(() => {
       setActiveSlide((current) => (current + 1) % slides.length)
     }, 4000)
 
     return () => clearInterval(timer)
-  }, [])
+  }, [slides.length])
 
-  const slide = slides[activeSlide]
+  const slide = slides[activeSlide] || slides[0] || {
+    title: 'Bun Maska Cafe',
+    subtitle: 'Freshly brewed chai and artisanal buns made fresh every day.',
+    image: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1500&q=80',
+    badge: 'Welcome'
+  }
 
   return (
     <section className="relative overflow-hidden rounded-[2rem] bg-slate-900 shadow-2xl shadow-orange-200/30">
@@ -55,30 +54,39 @@ export default function HeroSlider() {
           <p className="mt-5 max-w-lg text-base text-slate-200 md:text-lg">{slide.subtitle}</p>
 
           <div className="mt-8 flex flex-wrap gap-4">
-            <button className="rounded-full bg-orange-500 px-6 py-3 text-sm font-bold text-white transition hover:bg-orange-600">
-              Order Online
-            </button>
-            <button className="rounded-full border border-white/40 bg-transparent px-6 py-3 text-sm font-bold text-white transition hover:bg-white/10">
-              View Menu
-            </button>
+            <Link to="/product" className="rounded-full bg-orange-500 px-6 py-3 text-sm font-bold text-white transition hover:bg-orange-600 shadow-lg shadow-orange-500/20">
+              Order Online ➔
+            </Link>
+            <Link to="/offers" className="rounded-full border border-white/40 bg-transparent px-6 py-3 text-sm font-bold text-white transition hover:bg-white/10">
+              View Special Offers
+            </Link>
           </div>
         </div>
 
         <div className="hidden justify-end lg:flex">
           <div className="w-full max-w-sm rounded-[2rem] border border-white/20 bg-white/10 p-5 backdrop-blur-md">
-            <p className="text-sm font-semibold uppercase tracking-[0.25em] text-orange-200">Open now</p>
-            <div className="mt-6 space-y-4 text-white">
-              <div className="flex items-center justify-between border-b border-white/20 pb-3">
-                <span>Delivery</span>
-                <span className="font-bold text-orange-300">12 min</span>
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-[0.25em] text-orange-200">Store Status</span>
+              <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                storeSettings.isStoreOpen ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+              }`}>
+                {storeSettings.isStoreOpen ? '🟢 OPEN NOW' : '🛑 STORE CLOSED'}
+              </span>
+            </div>
+            <div className="mt-6 space-y-3.5 text-white text-sm">
+              <div className="flex items-center justify-between border-b border-white/20 pb-2.5">
+                <span>Avg Delivery</span>
+                <span className="font-bold text-orange-300">15-25 min</span>
               </div>
-              <div className="flex items-center justify-between border-b border-white/20 pb-3">
-                <span>Pickup</span>
-                <span className="font-bold text-orange-300">25 min</span>
+              <div className="flex items-center justify-between border-b border-white/20 pb-2.5">
+                <span>Free Delivery</span>
+                <span className="font-bold text-orange-300">Orders &gt; ₹{storeSettings.freeDeliveryThreshold || 500}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span>Address</span>
-                <span className="text-right text-sm text-slate-200">Andheri West</span>
+                <span>Location</span>
+                <span className="text-right text-xs font-semibold text-slate-200 line-clamp-1 max-w-[180px]" title={storeSettings.address}>
+                  📍 {storeSettings.city || 'Mumbai'}
+                </span>
               </div>
             </div>
           </div>

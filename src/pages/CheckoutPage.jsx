@@ -25,7 +25,7 @@ function loadRazorpayScript() {
 }
 
 export default function CheckoutPage() {
-  const { items, subtotal, delivery, tax, total, clearCart } = useCart()
+  const { items, subtotal, delivery, tax, total, clearCart, storeSettings } = useCart()
   const { user } = useSelector((state) => state.auth)
   const [paymentMethod, setPaymentMethod] = useState('razorpay')
   const [form, setForm] = useState({ name: '', phone: '', address: '', city: '', zip: '', notes: '' })
@@ -160,6 +160,10 @@ export default function CheckoutPage() {
   const handleSubmit = (event) => {
     event.preventDefault()
     if (!items.length) return
+    if (storeSettings?.isStoreOpen === false) {
+      setStatus({ type: 'failure', message: `Store Closed: ${storeSettings.storeClosedNotice || 'We are currently not accepting online orders.'}` })
+      return
+    }
     if (paymentMethod === 'cod') {
       completeOrder('Your order has been confirmed! Our delivery partner will collect cash upon delivery.')
     } else {

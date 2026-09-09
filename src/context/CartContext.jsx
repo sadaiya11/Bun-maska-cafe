@@ -1,11 +1,16 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import CartContext from './cart-context'
-
-const DELIVERY_FEE = 4.99
-const TAX_RATE = 0.08
+import { getStoreSettings } from '../services/storeSettingsService'
 
 export function CartProvider({ children }) {
   const [items, setItems] = useState([])
+  const [storeSettings, setStoreSettings] = useState(getStoreSettings)
+
+  useEffect(() => {
+    const handleUpdate = () => setStoreSettings(getStoreSettings())
+    window.addEventListener('bun_store_settings_updated', handleUpdate)
+    return () => window.removeEventListener('bun_store_settings_updated', handleUpdate)
+  }, [])
 
   const addItem = (product, variant, quantity = 1) => {
     setItems((currentItems) => {
@@ -63,19 +68,26 @@ export function CartProvider({ children }) {
 
   const totals = useMemo(() => {
     const subtotal = items.reduce((sum, item) => sum + (Number(item.price) || 0) * item.quantity, 0)
-    const delivery = items.length ? DELIVERY_FEE : 0
-    const tax = subtotal * TAX_RATE
+    const baseDeliveryFee = Number(storeSettings.deliveryFee ?? 4.99)
+    const freeThreshold = Number(storeSettings.freeDeliveryThreshold ?? 500)
+    const isFreeDelivery = freeThreshold > 0 && subtotal >= freeThreshold
+    const delivery = items.length ? (isFreeDelivery ? 0 : baseDeliveryFee) : 0
+    const taxRate = Number(storeSettings.taxRate ?? 0.08)
+    const tax = subtotal * taxRate
 
     return {
       subtotal,
       delivery,
       tax,
+      taxRate,
+      isFreeDelivery,
+      freeDeliveryThreshold: freeThreshold,
       total: subtotal + delivery + tax,
       itemCount: items.reduce((sum, item) => sum + item.quantity, 0),
     }
-  }, [items])
+  }, [items, storeSettings])
 
-  const value = { items, addItem, updateQuantity, removeItem, clearCart, ...totals }
+  const value = { items, addItem, updateQuantity, removeItem, clearCart, storeSettings, ...totals }
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>
 }

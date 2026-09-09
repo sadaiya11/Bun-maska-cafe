@@ -7,6 +7,8 @@ import PaymentsLogView from './views/PaymentsLogView';
 import AnalyticsDashboardView from './views/AnalyticsDashboardView';
 import CouponsManagerView from './views/CouponsManagerView';
 import InventoryManagerView from './views/InventoryManagerView';
+import StoreSettingsView from './views/StoreSettingsView';
+import ReviewsManagerView from './views/ReviewsManagerView';
 import OrderDetailModal from './components/OrderDetailModal';
 import OrderNotificationToast from './components/OrderNotificationToast';
 import { fetchAdminOrders, updateOrderStatus } from './services/adminApi';
@@ -166,6 +168,14 @@ export default function App() {
 
           {activeTab === 'inventory' && (
             <InventoryManagerView />
+          )}
+
+          {activeTab === 'settings' && (
+            <StoreSettingsView />
+          )}
+
+          {activeTab === 'reviews' && (
+            <ReviewsManagerView />
           )}
         </main>
       </div>

@@ -1,4 +1,8 @@
+import { getStoreSettings } from '../../services/storeSettingsService'
+
 export default function ThermalReceiptModal({ order, onClose }) {
+  const storeSettings = getStoreSettings()
+
   const handlePrint = () => {
     window.print();
   };
@@ -40,10 +44,10 @@ export default function ThermalReceiptModal({ order, onClose }) {
           
           {/* Header */}
           <div className="text-center space-y-1 pb-3 border-b border-dashed border-black">
-            <div className="text-lg font-black tracking-tight uppercase">BUN MASKA CAFÉ</div>
+            <div className="text-lg font-black tracking-tight uppercase">{storeSettings.storeName || 'BUN MASKA CAFÉ'}</div>
             <div>Fresh Taste & Artisanal Teas</div>
-            <div className="text-[10px]">FC Road, Shivajinagar, Pune</div>
-            <div className="text-[10px]">GSTIN: 27AABCB1234F1Z0 | Ph: +91 98765 43210</div>
+            <div className="text-[10px]">{storeSettings.address}, {storeSettings.city}</div>
+            <div className="text-[10px]">Ph: {storeSettings.phone} | {storeSettings.email}</div>
           </div>
 
           {/* Bill Info */}

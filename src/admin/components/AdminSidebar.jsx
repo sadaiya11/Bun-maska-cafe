@@ -51,6 +51,20 @@ export default function AdminSidebar({
       icon: '🧈',
       badge: null,
       desc: 'Stock alerts & materials'
+    },
+    {
+      id: 'settings',
+      label: 'Store Settings',
+      icon: '⚙️',
+      badge: null,
+      desc: 'Rates, banners & open/close'
+    },
+    {
+      id: 'reviews',
+      label: 'Food Reviews',
+      icon: '⭐',
+      badge: null,
+      desc: 'Moderate customer ratings'
     }
   ];
 
